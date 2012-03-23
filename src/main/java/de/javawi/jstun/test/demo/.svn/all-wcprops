@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/test/demo
+END
+StunServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/test/demo/StunServer.java
+END
+DiscoveryTestDemo.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/test/demo/DiscoveryTestDemo.java
+END
+BindingLifetimeTestDemo.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/test/demo/BindingLifetimeTestDemo.java
+END

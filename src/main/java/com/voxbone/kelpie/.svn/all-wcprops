@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/kelpie/!svn/ver/18/trunk/kelpie/src/main/java/com/voxbone/kelpie
+END
+SipSubscription.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/SipSubscription.java
+END
+RtpRelay.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/RtpRelay.java
+END
+RtpUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/RtpUtil.java
+END
+Presence.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/Presence.java
+END
+ConfigurationUtil.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/ConfigurationUtil.java
+END
+CallManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/CallManager.java
+END
+SipService.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/SipService.java
+END
+SessionManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/SessionManager.java
+END
+CallSession.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/kelpie/!svn/ver/18/trunk/kelpie/src/main/java/com/voxbone/kelpie/CallSession.java
+END
+Session.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/kelpie/!svn/ver/11/trunk/kelpie/src/main/java/com/voxbone/kelpie/Session.java
+END
+DNSHelper.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/DNSHelper.java
+END
+GatewayServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/kelpie/!svn/ver/9/trunk/kelpie/src/main/java/com/voxbone/kelpie/GatewayServer.java
+END
+MessageMessage.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/MessageMessage.java
+END
+KelpieSipListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/KelpieSipListener.java
+END
+SipSubscriptionManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/SipSubscriptionManager.java
+END
+StatusMonitor.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/StatusMonitor.java
+END
+DtmfEvent.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/DtmfEvent.java
+END
+DialbackSession.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/com/voxbone/kelpie/DialbackSession.java
+END
+UriMappings.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/kelpie/!svn/ver/9/trunk/kelpie/src/main/java/com/voxbone/kelpie/UriMappings.java
+END

@@ -1,0 +1,10 @@
+<project name="mavenfromant" default="test" basedir=".">
+  <!--  Test maven start from ant. -->
+  <echo message="Start: ${basedir}" ></echo>
+  <target name="test">
+    <exec executable="mvn">
+      <arg value="clean" ></arg>
+      <arg value="assembly:assembly" ></arg>
+    </exec>
+  </target>
+</project>

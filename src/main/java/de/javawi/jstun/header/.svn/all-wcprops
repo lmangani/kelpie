@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/header
+END
+MessageHeaderParsingException.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/header/MessageHeaderParsingException.java
+END
+MessageHeaderException.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/header/MessageHeaderException.java
+END
+MessageHeader.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/header/MessageHeader.java
+END
+MessageHeaderInterface.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/header/MessageHeaderInterface.java
+END

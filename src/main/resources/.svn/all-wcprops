@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/resources
+END
+server.properties
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/resources/server.properties
+END
+icon.jpg
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/resources/icon.jpg
+END
+log4j.properties
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/resources/log4j.properties
+END
+kelpied
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/resources/kelpied
+END

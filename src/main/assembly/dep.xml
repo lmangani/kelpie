@@ -1,0 +1,73 @@
+<assembly>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+
+	<fileSets>
+		
+		<!-- packaged jar -->
+		<fileSet>
+			<directory>target/</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>*.jar</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>lib/</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>*.jar</include>
+			</includes>
+		</fileSet>
+
+		<fileSet>
+			<directory>target/classes/</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>*.jpg</include>
+				<include>*.png</include>
+			</includes>
+			<fileMode>0644</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>target/classes/</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>kelpied</include>
+			</includes>
+			<fileMode>0755</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>target/classes/</directory>
+			<outputDirectory>/conf</outputDirectory>
+			<includes>
+				<include>*.properties</include>
+			</includes>
+			<fileMode>0644</fileMode>
+		</fileSet>
+
+	</fileSets>
+	
+	<dependencySets>
+		<!-- archive the dependencies too -->
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<unpack>false</unpack>
+			<scope>runtime</scope>
+			<excludes>
+				<exclude>junit:junit</exclude>
+			</excludes>
+		</dependencySet>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<unpack>false</unpack>
+			<scope>system</scope>
+			<excludes>
+				<exclude>junit:junit</exclude>
+			</excludes>
+		</dependencySet>
+	</dependencySets>
+</assembly>

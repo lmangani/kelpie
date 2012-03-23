@@ -1,0 +1,113 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute
+END
+ChangedAddress.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/ChangedAddress.java
+END
+Password.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/Password.java
+END
+ResponseAddress.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/ResponseAddress.java
+END
+SourceAddress.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/SourceAddress.java
+END
+UnknownMessageAttributeException.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/UnknownMessageAttributeException.java
+END
+MessageAttribute.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MessageAttribute.java
+END
+MessageAttributeParsingException.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MessageAttributeParsingException.java
+END
+MappedAddress.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MappedAddress.java
+END
+Username.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/Username.java
+END
+ReflectedFrom.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/ReflectedFrom.java
+END
+UnknownAttribute.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/UnknownAttribute.java
+END
+MessageIntegrity.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MessageIntegrity.java
+END
+ErrorCode.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/ErrorCode.java
+END
+MessageAttributeException.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MessageAttributeException.java
+END
+MappedResponseChangedSourceAddressReflectedFrom.java
+K 25
+svn:wc:ra_dav:version-url
+V 128
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MappedResponseChangedSourceAddressReflectedFrom.java
+END
+MessageAttributeInterface.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/MessageAttributeInterface.java
+END
+Dummy.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/Dummy.java
+END
+ChangeRequest.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/kelpie/!svn/ver/3/trunk/kelpie/src/main/java/de/javawi/jstun/attribute/ChangeRequest.java
+END
