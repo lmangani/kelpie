@@ -264,8 +264,8 @@ public class RtpRelay extends Thread
 		
 	Logger logger = Logger.getLogger(this.getClass());
 	
-	public static final int RTP_MIN_PORT;
-	public static final int RTP_MAX_PORT;
+	public static int RTP_MIN_PORT = 8000;
+	public static int RTP_MAX_PORT = 10000;
 	
 	public static void configure(Properties properties) {
 		// QMOD: User-Configurable RTP portrange
