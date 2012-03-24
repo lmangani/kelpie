@@ -2,6 +2,7 @@
 set -e
 
 KELPIE_VERSION=0.1
+KELPIE_CONF=/usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties
 
 if [ -f $KELPIE_CONF ]
 then
