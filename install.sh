@@ -3,6 +3,10 @@ set -e
 
 KELPIE_VERSION=0.1
 
+if [ -f $KELPIE_CONF ]
+then
+    cp $KELPIE_CONF $KELPIE_CONF.bak
+fi
 
 mvn -fpom.xml clean assembly::assembly
 
@@ -25,6 +29,11 @@ chmod 777 /var/log/kelpie/
 chown -R nobody:nogroup /usr/lib/kelpie-$KELPIE_VERSION/ 
 ln -sf /usr/lib/kelpie-$KELPIE_VERSION/kelpied /etc/init.d/kelpied 
 
-
-echo "Kelpie installed, don't forget to update /usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties"
-
+if [ -f $KELPIE_CONF.bak ]
+then
+    echo "Kelpie installed, retained settings in /usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties"
+    cp $KELPIE_CONF.bak $KELPIE_CONF.clean
+    mv $KELPIE_CONF.bak $KELPIE_CONF
+else
+    echo "Kelpie installed, don't forget to update /usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties"
+fi
