@@ -33,7 +33,7 @@ ln -sf /usr/lib/kelpie-$KELPIE_VERSION/kelpied /etc/init.d/kelpied
 if [ -f $KELPIE_CONF.bak ]
 then
     echo "Kelpie installed, retained settings in /usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties"
-    cp $KELPIE_CONF.bak $KELPIE_CONF.clean
+    cp $KELPIE_CONF $KELPIE_CONF.clean
     mv $KELPIE_CONF.bak $KELPIE_CONF
 else
     echo "Kelpie installed, don't forget to update /usr/lib/kelpie-$KELPIE_VERSION/conf/server.properties"
