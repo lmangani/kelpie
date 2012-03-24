@@ -33,6 +33,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.jabberstudio.jso.Packet;
@@ -262,8 +263,15 @@ public class RtpRelay extends Thread
 	int firSeq = 0;
 		
 	Logger logger = Logger.getLogger(this.getClass());
-	public static final int RTP_MIN_PORT = 8000;
-	public static final int RTP_MAX_PORT = 10000;
+	
+	public static final int RTP_MIN_PORT;
+	public static final int RTP_MAX_PORT;
+	
+	public static void configure(Properties properties) {
+		// QMOD: User-Configurable RTP portrange
+		RTP_MIN_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.min_port", "8000"));
+		RTP_MAX_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.max_port", "10000"));
+	}
 	
 	private static int nextPort = RTP_MIN_PORT;
 	private CallSession cs = null;
