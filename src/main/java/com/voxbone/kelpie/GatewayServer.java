@@ -147,6 +147,8 @@ public class GatewayServer
 		Session.configure(properties);
 		SipSubscriptionManager.configure(properties);
 		UriMappings.configure(properties);
+		RtpRelay.configure(properties);
+		
 
 		host = properties.getProperty("com.voxbone.kelpie.hostname");
 		port = "5269";

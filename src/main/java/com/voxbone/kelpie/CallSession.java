@@ -241,7 +241,7 @@ public class CallSession
 		{
 			StreamElement pt = (StreamElement) opt;
 			
-			if (pt.getNamespaceURI().equals("http://www.google.com/session/video"))
+			if (pt.getNamespaceURI().equals("http://www.google.com/session/video") && pt.getLocalName().equals("payload-type"))
 			{
 				try
 				{
@@ -277,7 +277,7 @@ public class CallSession
 					logger.debug("[[" + internalCallId + "]] NumberFormatException -> description item contents : " + pt.toString());
 				}
 			}
-			else
+			else if(pt.getNamespaceURI().equals("http://www.google.com/session/phone") && pt.getLocalName().equals("payload-type"))
 			{
 				try
 				{

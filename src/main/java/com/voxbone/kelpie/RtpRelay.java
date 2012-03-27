@@ -60,6 +60,13 @@ import de.javawi.jstun.util.UtilityException;
 
 public class RtpRelay extends Thread
 {
+	// global variables
+	private static int RTP_MIN_PORT;
+	private static int RTP_MAX_PORT;
+	
+	private static int nextPort = RTP_MIN_PORT;
+	
+	private static boolean NAT_ENABLE = false;
 	
 	Timer retransTimer = new Timer("Stun Retransmit Thread");
 	
@@ -263,12 +270,8 @@ public class RtpRelay extends Thread
 	int firSeq = 0;
 		
 	Logger logger = Logger.getLogger(this.getClass());
-	static Properties properties = ConfigurationUtil.getPropertiesResource("server");
 	
-	public static int RTP_MIN_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.min_port", "55000"));
-	public static int RTP_MAX_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.max_port", "60000"));
-	
-	private static int nextPort = RTP_MIN_PORT;
+
 	private CallSession cs = null;
 	
 	private DatagramChannel makeDatagramChannel(boolean any) throws IOException
@@ -622,6 +625,10 @@ public class RtpRelay extends Thread
 
 								if (socket == sipSocket)
 								{
+									if(NAT_ENABLE && !src.equals(sipDest))
+									{
+										sipDest = src;
+									}
 									destSocket = jabberSocket;
 									destAddr = jabberDest;
 									
@@ -639,6 +646,11 @@ public class RtpRelay extends Thread
 								{
 									destSocket = jabberSocketRtcp;
 									destAddr = jabberDestRtcp;
+
+									if(NAT_ENABLE && !src.equals(sipDestRtcp))
+									{
+										sipDestRtcp = src;
+									}
 									
 									if (destSocket != null && destAddr != null)
 									{
@@ -818,5 +830,14 @@ public class RtpRelay extends Thread
 		{
 			logger.error("Error in rtcp shutdown", e);
 		}
+	}
+
+	public static void configure(Properties properties)
+	{
+		RTP_MIN_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.min_port", "8000"));
+		RTP_MAX_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.max_port", "10000"));
+		NAT_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.nat_enable", "false"));
+		
+		nextPort = RTP_MIN_PORT;		
 	}
 }
