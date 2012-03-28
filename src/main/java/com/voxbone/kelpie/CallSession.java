@@ -395,6 +395,8 @@ public class CallSession
 					for (Payload p : answerVPayloads)
 					{
 						formats[i++] = p.id;
+						attributes.add(sdpFactory.createAttribute("rtpmap", Integer.toString(p.id) + " " + p.name + "/" + p.clockRate));						
+						attributes.add(sdpFactory.createAttribute("fmtp", Integer.toString(p.id) + " packetization-rate=1"));
 					}				
 				}
 				

@@ -79,8 +79,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientName = null;
 	private static String clientVersion = null;
 	private static String fakeId = null;
-	private static String packetDump = null;
-
 
 	private static String iconHash;
 	private static byte [] iconData;
@@ -150,7 +148,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
 		clientVersion = "0.2";
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
-		packetDump =  properties.getProperty("com.voxbone.kelpie.dump.packets");
 	}
 	
 	private long idNum = 0;
@@ -276,11 +273,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			JID remote = evt.getData().getFrom();
 
 			logger.debug("[[" + internalCallId + "]] got message of " + evt.getData().getQualifiedName());
-
-			// Debug Packets
-                        if (packetDump != null) {
-                                logger.debug("P: " + evt.getData().toString());
-                        }
 
 			if (evt.getData().getQualifiedName().equals("db:result"))
 			{
