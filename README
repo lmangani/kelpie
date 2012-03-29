@@ -23,3 +23,9 @@ would mapp sent to sip:user@{kelpie.hostname} to user@jabber.org
 
 if you don't want to use the mapping file, the format
 sip:user+xmpp-server@{kelpie.hostname} can also be used instead
+
+
+TO INSTALL:
+
+# apt-get install maven2 openjdk-6-jdk
+# ./install.sh
