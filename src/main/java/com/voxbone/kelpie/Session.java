@@ -1208,7 +1208,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		
 		StreamElement caps = conn.getDataFactory().createElementNode(new NSI("c", "http://jabber.org/protocol/caps"));
-		caps.setAttributeValue("ext", "voice-v1 video-v1");
+		caps.setAttributeValue("ext", "voice-v1 video-v1 camera-v1");
 		caps.setAttributeValue("node", clientName);
 		caps.setAttributeValue("ver", clientVersion);
 		p.add(caps);
