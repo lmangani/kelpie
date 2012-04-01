@@ -114,11 +114,20 @@ public class UriMappings
 					} catch (Exception e) {
 					log.debug("Error " + e + " subscribing to " + sip_id + " => " + jid);
 					}
-						while (m.voiceResource == null) 
-						try {
+						int count = 0;
+						while (count < 5) 
+						    try {
 							log.debug("NULL resource for " + jid);
+							count++;
 							Thread.sleep(500);
-	                                        } catch (Exception ex){ continue; } 
+	                                        	} catch (Exception ex) { continue; }
+
+						if (m.voiceResource == null) {
+							log.debug("Removing live " + sip_id + " => " + jid );
+							mappings.remove(m);
+							SessionManager.removeSession(SessionManager.getSession(jid));
+							return null;
+						}
 
 					}
 				}
