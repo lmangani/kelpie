@@ -59,8 +59,10 @@ public class UriMappings
 	{
 		for (Mapping m : mappings)
 		{
+			if (m.voiceResource == null) {
 			Session sess = SessionManager.findCreateSession(host, m.jid);		
 			sess.sendSubscribeRequest(new JID(fakeId + "@" + host), m.jid, "subscribe");
+			}
 		}
 	}
 
@@ -79,7 +81,7 @@ public class UriMappings
 			}
 		}
 	}
-	
+
 	public static JID toJID(String sip_id)
 	{
 		for (Mapping m : mappings)
@@ -92,8 +94,36 @@ public class UriMappings
 		
 		if (sip_id.contains("+"))
 		{
-			String [] fields = sip_id.split("\\+", 2);
-			return new JID(fields[0] + "@" + fields[1]);
+				String [] fields = sip_id.split("\\+", 2);
+				JID jid = new JID(fields[0] + "@" + fields[1]);
+				log.debug("Resolving resources for " + jid );
+				if (UriMappings.isDup(sip_id))
+			 	{
+					log.debug("Existing Mapping found for " + sip_id );
+				} else {
+					log.debug("Adding live " + sip_id + " => " + jid );
+					mappings.add(new Mapping(sip_id, jid));
+				}
+				for (Mapping m : mappings)
+				{
+					if (m.jid == jid)
+					{
+					Session sess = SessionManager.findCreateSession(host, m.jid);		
+					try {
+					sess.sendSubscribeRequest(new JID(fakeId + "@" + host), m.jid, "subscribe");
+					} catch (Exception e) {
+					log.debug("Error " + e + " subscribing to " + sip_id + " => " + jid);
+					}
+						while (m.voiceResource == null) 
+						try {
+							log.debug("NULL resource for " + jid);
+							Thread.sleep(500);
+	                                        } catch (Exception ex){ continue; } 
+
+					}
+				}
+
+			return jid;
 		}
 
 		return null;
@@ -118,7 +148,7 @@ public class UriMappings
 			if (m.jid.match(jid))
 			{
 				m.voiceResource = jid.getResource();
-				log.info("Resource set to " + jid.getResource());
+				log.info("Resource for " + m.jid + " set to " + jid.getResource());
 			}
 		}
 	}
@@ -134,4 +164,17 @@ public class UriMappings
 		}
 		return null;
 	}
+
+	public static boolean isDup(String sip_id){
+               for (Mapping m : mappings)
+               {
+			if (m.sip_id.equals(sip_id))
+			{
+				return true;
+			}
+               }
+               return false;
+       }
+	
+
 }
