@@ -200,6 +200,33 @@ public class SipService
 		
 		return true;
 	}
+
+	public static boolean sendCancel(CallSession cs)
+	{
+		try
+		{
+			Request req = cs.inviteTransaction.getRequest();
+			Response resp = messageFactory.createResponse(Response.REQUEST_TERMINATED, cs.inviteTransaction.getRequest());
+			
+			ToHeader th = (ToHeader) req.getHeader("To");
+			String dest = ((SipURI) th.getAddress().getURI()).getUser();
+
+			ListeningPoint lp = sipProvider.getListeningPoint(ListeningPoint.UDP);
+			
+			Address localAddress = addressFactory.createAddress("sip:" + dest + "@" + lp.getIPAddress() + ":" + lp.getPort());
+			
+			ContactHeader ch = headerFactory.createContactHeader(localAddress);
+			resp.addHeader(ch);
+			
+			cs.inviteTransaction.sendResponse(resp);
+		} 
+		catch (Exception e)
+		{
+			logger.error("Error sending CANCEL", e);
+		}
+		
+		return true;
+	}
 	
 	public static boolean sendVideoUpdate(CallSession cs)
 	{
