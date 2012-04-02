@@ -115,7 +115,7 @@ public class UriMappings
 					log.debug("Error " + e + " subscribing to " + sip_id + " => " + jid);
 					}
 						int count = 0;
-						while (count < 5) 
+						while (count < 5 && m.voiceResource == null) 
 						    try {
 							log.debug("NULL resource for " + jid);
 							count++;
