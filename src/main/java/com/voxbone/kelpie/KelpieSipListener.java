@@ -459,16 +459,6 @@ public class KelpieSipListener implements SipListener
 				if (evt.getDialog() != null)
 				{
 					logger.info("[[SIP]] Got in dialog cancel");
-					CallSession cs = (CallSession) evt.getDialog().getApplicationData();
-					if (cs != null) 
-					{
-						Session sess = SessionManager.findCreateSession(cs.jabberLocal.getDomain(), cs.jabberRemote);
-						if (sess != null) 
-						{
-							sess.sendBye(cs);
-						}
-					}
-					
 					Response res = SipService.messageFactory.createResponse(Response.OK, req);
 					if (evt.getServerTransaction() == null)
 					{
@@ -479,6 +469,18 @@ public class KelpieSipListener implements SipListener
 					{
 						evt.getServerTransaction().sendResponse(res);
 					}
+
+					CallSession cs = (CallSession) evt.getDialog().getApplicationData();
+					if (cs != null) 
+					{
+						Session sess = SessionManager.findCreateSession(cs.jabberLocal.getDomain(), cs.jabberRemote);
+						if (sess != null) 
+						{
+							SipService.sendReject(cs);
+							sess.sendBye(cs);
+						}
+					}
+					
 					return;
 				}
 			}			
