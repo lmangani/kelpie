@@ -201,12 +201,12 @@ public class SipService
 		return true;
 	}
 
-	public static boolean sendCancel(CallSession cs)
+	public static boolean sendReject(CallSession cs)
 	{
 		try
 		{
 			Request req = cs.inviteTransaction.getRequest();
-			Response resp = messageFactory.createResponse(Response.REQUEST_TERMINATED, cs.inviteTransaction.getRequest());
+			Response resp = messageFactory.createResponse(Response.TEMPORARILY_UNAVAILABLE, cs.inviteTransaction.getRequest());
 			
 			ToHeader th = (ToHeader) req.getHeader("To");
 			String dest = ((SipURI) th.getAddress().getURI()).getUser();
@@ -222,7 +222,7 @@ public class SipService
 		} 
 		catch (Exception e)
 		{
-			logger.error("Error sending CANCEL", e);
+			logger.error("Error sending Reject", e);
 		}
 		
 		return true;
