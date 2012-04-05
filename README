@@ -5,17 +5,21 @@ latest source can be found at http://www.javaforge.com/project/kelpie
 It attempts to make sip endpoints appear as xmpp endpoints and vice-versa
 
 
-The gateway only focuses on protocol translation, a SIP proxy (such as Kamailio) and a federated xmpp server are required for routing.
+The gateway only focuses on protocol translation, a SIP proxy (such as Kamailio) 
+and a federated xmpp server are required for routing.
 
 
 XMPP->SIP
 
-This is the easiest case, the xmpp client adds user@{kelpie.hostname} to his contact list, this gets translated as user@{outbound.siproxy} and the proxy routes the messages
+This is the easiest case, the xmpp client adds user@{kelpie.hostname} to his contact 
+list, this gets translated as user@{outbound.siproxy} and the proxy routes the messages
 
 SIP->XMPP
 
 This direction is more complicated.
-The sip proxy should identify that user is actually an xmpp endpoint and forwards to the kelpie gateway.  Kelpie has a mapping of "user" to xmpp ids in its properties file,  if it is found it forwards the message to the specified xmpp server.
+The sip proxy should identify that user is actually an xmpp endpoint and forwards to 
+the kelpie gateway.  Kelpie has a mapping of "user" to xmpp ids in its properties file,  
+if it is found it forwards the message to the specified xmpp server.
 
 
 example:
@@ -27,4 +31,3 @@ if you don't want to use the mapping file, the format
 sip:user+xmpp-server@{kelpie.hostname} can also be used instead
 
 
-note: this fork attempts to lookup full JIDs for user+xmpp-server calls and generates live mapping (WIP)
