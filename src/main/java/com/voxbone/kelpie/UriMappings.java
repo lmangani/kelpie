@@ -35,6 +35,7 @@ public class UriMappings
 	private static Logger log = Logger.getLogger(UriMappings.class);
 	private static String host;
 	private static String fakeId;
+	private static boolean mapJID = false;
 	
 	private static class Mapping
 	{
@@ -52,6 +53,7 @@ public class UriMappings
 	
 	public static void configure(Properties properties) {
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
+		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		buildMap(properties);
 	}
 	
@@ -122,7 +124,7 @@ public class UriMappings
 							Thread.sleep(500);
 	                                        	} catch (Exception ex) { continue; }
 
-						if (m.voiceResource == null) {
+						if (m.voiceResource == null && mapJID) {
 							log.debug("Removing live " + sip_id + " => " + jid );
 							mappings.remove(m);
 							SessionManager.removeSession(SessionManager.getSession(jid));
