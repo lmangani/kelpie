@@ -67,6 +67,7 @@ public class RtpRelay extends Thread
 	private static int nextPort = RTP_MIN_PORT;
 	
 	private static boolean NAT_ENABLE = false;
+	private static boolean FIR_ENABLE = false;
 	
 	Timer retransTimer = new Timer("Stun Retransmit Thread");
 	
@@ -518,9 +519,10 @@ public class RtpRelay extends Thread
 	 */ 
 	public void sendFIR()
 	{
+	  if (FIR_ENABLE) {
 		byte [] buffer = new byte[20];
 		RtpUtil.buildFIR(buffer, firSeq++, sipSSRC, jabberSSRC);
-		
+
 		try
 		{
 			jabberSocketRtcp.send(ByteBuffer.wrap(buffer), jabberDestRtcp);
@@ -529,6 +531,7 @@ public class RtpRelay extends Thread
 		{
 			logger.error("Error sending FIR packet!", e);
 		}
+	  }
 	}
 
 	public void sendSipDTMF(char dtmf)
@@ -841,7 +844,8 @@ public class RtpRelay extends Thread
 		RTP_MIN_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.min_port", "8000"));
 		RTP_MAX_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.max_port", "10000"));
 		NAT_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.nat_enable", "false"));
-		
+		FIR_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.fir_enable", "false"));
+
 		nextPort = RTP_MIN_PORT;		
 	}
 }

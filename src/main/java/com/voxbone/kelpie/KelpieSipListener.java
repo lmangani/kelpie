@@ -511,7 +511,7 @@ public class KelpieSipListener implements SipListener
 				CallSession cs = (CallSession) evt.getDialog().getApplicationData();
 				if (cs != null && cs.vRelay != null)
 				{
-					cs.vRelay.sendFIR();
+					//cs.vRelay.sendFIR();
 					Response res = SipService.messageFactory.createResponse(Response.OK, req);
 
 					if (evt.getServerTransaction() == null)
