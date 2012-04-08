@@ -585,7 +585,20 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 					sess.sendPacket(p);
 				}
-				
+				else if ( packet.getAttributeValue("type").equals("error"))
+				 {
+					logger.debug("[[" + internalCallId + "]] Got error stanza!");
+					String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
+ 						 CallSession cs = CallManager.getSession(sessionId);						
+ 						 if (cs != null)
+ 						 {
+ 							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
+ 							logger.debug("[[" + internalCallId + "]] found call session, forwarding reject");
+ 							SipService.sendReject(cs);
+ 							CallManager.removeSession(cs);
+ 						 }
+				 }
+
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("session", "http://www.google.com/session")) != null)
 				{
@@ -737,7 +750,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 					}
 
-					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("reject"))
+					else if ( packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("reject"))
 					{
 						logger.debug("[[" + internalCallId + "]] Got a reject");
 						String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
