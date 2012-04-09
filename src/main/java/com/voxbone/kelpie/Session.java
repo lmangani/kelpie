@@ -589,9 +589,20 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				}
 				else if ( packet.getAttributeValue("type").equals("error"))
 				 {
-					logger.debug("[[" + internalCallId + "]] Got error stanza!");
-					String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
- 						 CallSession cs = CallManager.getSession(sessionId);						
+					logger.debug("[[" + internalCallId + "]] Got error stanza");
+
+						StreamElement error = packet.getFirstElement("error");
+							if ( error != null )
+							{
+								logger.debug("[[" + internalCallId + "]] Error code: " + error.getAttributeValue("code") + " type: " + error.getAttributeValue("type") );
+								if (error.getAttributeValue("type") == "cancel") { 
+									logger.debug("[[" + internalCallId + "]] Sending cancel..." );
+									mapJID = true;
+								}
+							}
+
+						String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
+ 						CallSession cs = CallManager.getSession(sessionId);						
  						 if (cs != null && mapJID)
  						 {
  							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
