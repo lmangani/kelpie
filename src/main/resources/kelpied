@@ -55,7 +55,13 @@ d_start() {
 d_stop() {
 	if [ -e "$PIDFILE" ]; then
 		echo "Stopping $DESC: $NAME"
+		if [ -x start-stop-daemon ]; then
 		start-stop-daemon --stop --oknodo --quiet --pidfile $PIDFILE
+		else
+			for pid in `cat $PIDFILE`
+          		do kill -9 $pid
+        		done
+		fi
 		echo ""
 		rm $PIDFILE
 	else
