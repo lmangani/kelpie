@@ -597,7 +597,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 								logger.debug("[[" + internalCallId + "]] Error code: " + error.getAttributeValue("code") + " type: " + error.getAttributeValue("type") );
 								if (error.getAttributeValue("type") == "cancel") { 
 									logger.debug("[[" + internalCallId + "]] Sending cancel..." );
-									mapJID = true;
+									// mapJID = true;
 								}
 							}
 
