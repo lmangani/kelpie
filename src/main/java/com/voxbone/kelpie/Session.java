@@ -388,9 +388,10 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 			}
 			else if (   evt.getData().getQualifiedName().equals(":message")
-			         && evt.getData().getAttributeValue("type") != null
-			         && evt.getData().getAttributeValue("type").equals("chat"))
+			         && evt.getData().getAttributeValue("type") != null )
+			         //&& evt.getData().getAttributeValue("type").equals("chat"))
 			{
+			   if (evt.getData().getAttributeValue("type").equals("chat")) {
 				logger.debug("[[" + internalCallId + "]] Got an IM");
 				StreamElement body = evt.getData().getFirstElement("body");
 				if (body != null) 
@@ -439,6 +440,10 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						SipService.sendMessageMessage(mm, domain);
 					}
 				}
+			   } else if (evt.getData().getAttributeValue("type").equals("error")) {
+					 logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
+					// should we notify this error to the sender?
+			   }
 			}
 			else if (evt.getData().getQualifiedName().equals(":presence"))
 			{
