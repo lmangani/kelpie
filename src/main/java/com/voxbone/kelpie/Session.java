@@ -79,6 +79,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientName = null;
 	private static String clientVersion = null;
 	private static String fakeId = null;
+	private static boolean mapJID = false;
 
 	private static String iconHash;
 	private static byte [] iconData;
@@ -148,6 +149,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
 		clientVersion = "0.2";
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
+		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 	}
 	
 	private long idNum = 0;
@@ -590,7 +592,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					logger.debug("[[" + internalCallId + "]] Got error stanza!");
 					String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
  						 CallSession cs = CallManager.getSession(sessionId);						
- 						 if (cs != null)
+ 						 if (cs != null && mapJID)
  						 {
  							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
  							logger.debug("[[" + internalCallId + "]] found call session, forwarding reject");
