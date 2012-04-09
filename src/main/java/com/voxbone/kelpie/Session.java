@@ -596,11 +596,20 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							{
 								logger.debug("[[" + internalCallId + "]] Error code: " + error.getAttributeValue("code") + " type: " + error.getAttributeValue("type") );
 								if (error.getAttributeValue("type") == "cancel") { 
-									logger.debug("[[" + internalCallId + "]] Sending cancel..." );
-									// mapJID = true;
+									String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
+ 									CallSession cs = CallManager.getSession(sessionId);
+ 									if (cs != null) {
+									logger.debug("[[" + internalCallId + "]] Sending reject..." );
+									SipService.sendReject(cs);
+									logger.debug("[[" + internalCallId + "]] Removing session... " );
+		 							CallManager.removeSession(cs);
+									}
+								} else {  
+									logger.debug("[[" + internalCallId + "]] Proceeding... ");
 								}
 							}
 
+					/*
 						String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
  						CallSession cs = CallManager.getSession(sessionId);						
  						 if (cs != null && mapJID)
@@ -610,6 +619,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
  							SipService.sendReject(cs);
  							CallManager.removeSession(cs);
  						 }
+					*/
 				 }
 
 				else if (   packet.getAttributeValue("type").equals("set")
