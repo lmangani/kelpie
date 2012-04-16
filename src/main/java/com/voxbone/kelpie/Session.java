@@ -945,7 +945,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			payload_type.setAttributeValue("name", payload.name);
 		}
 		
-		/*StreamElement transport = */session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+		/*StreamElement transport = */
+			session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
 
 		try
 		{
@@ -1172,7 +1173,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				payload_type.setAttributeValue("height", Integer.toString(payload.height));
 				payload_type.setAttributeValue("framerate", Integer.toString(payload.framerate));
 				
-				payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate));
+				// payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate));
 			}
 		}
 		else
@@ -1190,7 +1191,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			payload_type.setAttributeValue("name", payload.name);
 		}
 		
-		/*StreamElement transport = */session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+		/*StreamElement transport = */
+			session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
 
 		try
 		{
