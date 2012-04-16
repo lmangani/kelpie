@@ -56,9 +56,9 @@ public class CallSession
 	public static Payload PAYLOAD_PCMU = new Payload(0, "PCMU", 8000, 64000);
 	public static Payload PAYLOAD_PCMA = new Payload(8, "PCMA", 8000, 64000);
 	public static Payload PAYLOAD_G723 = new Payload(4, "G723", 8000, 6300);
-	public static VPayload PAYLOAD_H263 = new VPayload(34, "H263", 90000, 512000, 320, 200, 30);
-	public static VPayload PAYLOAD_H264 = new VPayload(97, "H264", 90000, 512000, 320, 200, 30);
-	public static VPayload PAYLOAD_H264SVC = new VPayload(96, "H264-SVC", 90000, 512000, 320, 200, 30);
+	public static VPayload PAYLOAD_H263 = new VPayload(34, "H263", 90000, 512000, 320, 200, 15);
+	public static VPayload PAYLOAD_H264 = new VPayload(97, "H264", 90000, 512000, 640, 480, 15);
+	public static VPayload PAYLOAD_H264SVC = new VPayload(96, "H264-SVC", 90000, 512000, 640, 480, 15);
 	
 	
 	static
