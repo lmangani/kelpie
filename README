@@ -1,9 +1,9 @@
-Kelpie is a SIP to XMPP gateway
+***** This is a DEVELOPMENT FORK! Please see the WIKI! *******
+Latest source can be found at http://www.javaforge.com/project/kelpie
 
-latest source can be found at http://www.javaforge.com/project/kelpie
+Kelpie is an SIP to XMPP gateway
 
 It attempts to make sip endpoints appear as xmpp endpoints and vice-versa
-
 
 The gateway only focuses on protocol translation, a SIP proxy (such as Kamailio) 
 and a federated xmpp server are required for routing.
@@ -19,7 +19,8 @@ SIP->XMPP
 This direction is more complicated.
 The sip proxy should identify that user is actually an xmpp endpoint and forwards to 
 the kelpie gateway.  Kelpie has a mapping of "user" to xmpp ids in its properties file,  
-if it is found it forwards the message to the specified xmpp server.
+if it is found it forwards the message to the specified xmpp server. If the contact is
+not mapped, Kelpie will attempt to lookup its fullJID and send an invite/request.
 
 
 example:
