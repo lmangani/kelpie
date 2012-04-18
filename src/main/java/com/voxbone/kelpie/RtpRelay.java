@@ -76,12 +76,16 @@ public class RtpRelay extends Thread
 		byte [] message;
 		SocketAddress dest;
 		DatagramChannel socket;
+		String remoteUser;
+		String localUser;
 	
-		public StunTransmitter(byte [] message, SocketAddress dest, DatagramChannel socket)
+		public StunTransmitter(byte [] message, String remoteUser, String localUser, SocketAddress dest, DatagramChannel socket)
 		{
 			this.message = message;
 			this.dest = dest;
 			this.socket = socket;
+			this.remoteUser = remoteUser;
+			this.localUser = localUser;
 		}
 
 		public void run()
@@ -248,8 +252,6 @@ public class RtpRelay extends Thread
 
 	}
 
-	private Hashtable<ID, Packet> idTable = new Hashtable<ID, Packet>();
-
 	private DatagramChannel jabberSocket;
 	private DatagramChannel sipSocket;
 	private DatagramChannel jabberSocketRtcp;
@@ -306,7 +308,7 @@ public class RtpRelay extends Thread
 		return socket;
 	}
 	
-	public void sendBind(String user, String me, String destIp, int destPort, Packet packet, boolean rtcp)
+	public void sendBind(String user, String me, String destIp, int destPort, boolean rtcp)
 	{
 		MessageHeader sendMH = new MessageHeader(MessageHeaderType.BindingRequest);
 		Username name = new Username(user + me);
@@ -318,9 +320,10 @@ public class RtpRelay extends Thread
 		{
 			logger.error("Unable to make stun transaction id", e);
 		}
-		sendMH.addMessageAttribute(name);
-		
-		idTable.put(new ID(sendMH.getTransactionID()), packet);
+		if(name.getUsername().length() > 0)
+		{
+			sendMH.addMessageAttribute(name);
+		}
 		
 		try
 		{
@@ -343,7 +346,7 @@ public class RtpRelay extends Thread
 				if (jabberDest == null)
 				{
 					logger.debug("[[" + cs.internalCallId + "]] Sending Bind to: " + destIp + ":" + destPort);
-					StunTransmitter st = new StunTransmitter(data, new InetSocketAddress(destIp, destPort), socket);
+					StunTransmitter st = new StunTransmitter(data, user, me, new InetSocketAddress(destIp, destPort), socket);
 					String key = name.getUsername() + "_" + destIp + ":" + destPort;
 					if (transmitters.containsKey(key)) 
 					{
@@ -367,8 +370,8 @@ public class RtpRelay extends Thread
 		this.video = video;
 		this.cs = cs;
 		
-		jabberSocket = makeDatagramChannel(true);
-		jabberSocketRtcp = makeDatagramChannel(true);
+		jabberSocket = makeDatagramChannel(false);
+		jabberSocketRtcp = makeDatagramChannel(false);
 
 		sipSocket = makeDatagramChannel(false);
 		sipSocketRtcp = makeDatagramChannel(false);
@@ -419,15 +422,47 @@ public class RtpRelay extends Thread
 				MessageAttribute usernameMA = receiveMH.getMessageAttribute(MessageAttributeType.Username);
 				if (usernameMA != null) {
 					sendMH.addMessageAttribute(usernameMA);
+				}
+				
+				byte [] data = sendMH.getBytes();
+				socket.send(ByteBuffer.wrap(data), src);
+				
+				synchronized (transmitters)
+				{
+					boolean reflexive = true;
+					String me = null;
+					Username user = (Username) receiveMH.getMessageAttribute(MessageAttributeType.Username);
+					for (String key : transmitters.keySet())
+					{
+						if(user == null) break;
+						StunTransmitter st = transmitters.get(key);
 
-					byte [] data = sendMH.getBytes();
-					socket.send(ByteBuffer.wrap(data), src);
+						if(user.getUsername().startsWith(st.localUser))
+						{
+							me = st.localUser;
+							logger.debug("Local User found " + me);
+						}
+						
+						if(src.equals(st.dest))
+						{
+							reflexive = false;
+							break;
+						}
+					}
+					
+					if(reflexive && me != null)
+					{
+						logger.info("Reflexive detected " + user.getUsername());
+						String remote = user.getUsername().substring(me.length());
+
+						logger.info("Remote = " + remote + " me = " + me);
+						sendBind(remote, me, ((InetSocketAddress) src).getAddress().getHostAddress(), ((InetSocketAddress) src).getPort(), socket == jabberSocket ? false : true);
+						
+					}
 				}
 			}
 			else if (receiveMH.getType() == MessageHeaderType.BindingResponse)
 			{
-				@SuppressWarnings("unused")
-				Packet p = idTable.get(new ID(receiveMH.getTransactionID()));
 				
 				synchronized (transmitters)
 				{
@@ -463,7 +498,7 @@ public class RtpRelay extends Thread
 								if (user.getUsername().startsWith(key))
 								{
 									newKey = key;
-									newTimer = new StunTransmitter(st.message, st.dest, st.socket);
+									newTimer = new StunTransmitter(st.message, st.remoteUser, st.localUser, st.dest, st.socket);
 								}
 							}
 						}

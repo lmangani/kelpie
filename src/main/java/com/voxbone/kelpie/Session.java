@@ -683,7 +683,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 									}
 									sess.acceptTransport(packet);
 									
-									cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), packet, false);
+									cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
 								}
 							}
 						}
@@ -717,7 +717,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 											sess.sendTransportCandidates(cs, StreamType.VRTP);
 										}
 
-										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), packet, false);
+										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
 									}
 									else if (candidate.getAttributeValue("name").equals("video_rtcp"))
 									{
@@ -726,7 +726,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 											sess.sendTransportCandidates(cs, StreamType.VRTCP);
 										}
 
-										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), packet, true);
+										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
 									}
 									else if (candidate.getAttributeValue("name").equals("rtp")/* || candidate.getAttributeValue("name").equals("rtcp")*/)
 									{
@@ -735,7 +735,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 											sess.sendTransportCandidates(cs, StreamType.RTP);
 										}
 
-										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), packet, false);
+										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
 									}
 									else if (candidate.getAttributeValue("name").equals("rtcp"))
 									{
@@ -744,7 +744,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 											sess.sendTransportCandidates(cs, StreamType.RTCP);										
 										}
 
-										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), packet, true);
+										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
 									}
 								}
 							}
