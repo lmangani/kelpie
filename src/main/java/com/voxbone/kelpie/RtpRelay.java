@@ -495,14 +495,14 @@ public class RtpRelay extends Thread
 									
 								}
 								logger.debug("[[" + cs.internalCallId + "]] Comparing " + key + " to " + user.getUsername());
-								if (user.getUsername().startsWith(key))
+								if (key.startsWith(user.getUsername()))
 								{
 									newKey = key;
 									newTimer = new StunTransmitter(st.message, st.remoteUser, st.localUser, st.dest, st.socket);
 								}
 							}
 						}
-
+						
 						if (newTimer != null && newKey != null)
 						{
 							logger.debug("[[" + cs.internalCallId + "]] ++++++++++++++++ slowing retransmission " + newKey + " ++++++++++++++");
