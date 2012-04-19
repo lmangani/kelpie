@@ -481,6 +481,8 @@ public class RtpRelay extends Thread
 						Username user = (Username) receiveMH.getMessageAttribute(MessageAttributeType.Username);
 						StunTransmitter newTimer = null;
 						String newKey = null;
+
+						String desired = user.getUsername() + "_" + ((InetSocketAddress)src).getAddress().getHostAddress() + ":" + ((InetSocketAddress)src).getPort();
 						for (String key : transmitters.keySet())
 						{
 							StunTransmitter st = transmitters.get(key);
@@ -494,8 +496,9 @@ public class RtpRelay extends Thread
 								{
 									
 								}
-								logger.debug("[[" + cs.internalCallId + "]] Comparing " + key + " to " + user.getUsername());
-								if (key.startsWith(user.getUsername()))
+
+								logger.debug("[[" + cs.internalCallId + "]] Comparing " + key + " to " + desired);
+ 				                                if (key.equals(desired))
 								{
 									newKey = key;
 									newTimer = new StunTransmitter(st.message, st.remoteUser, st.localUser, st.dest, st.socket);
