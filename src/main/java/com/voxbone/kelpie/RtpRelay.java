@@ -558,7 +558,7 @@ public class RtpRelay extends Thread
 	public void sendFIR()
 	{
 	  if (FIR_ENABLE) {
-		byte [] buffer = new byte[20];
+		byte [] buffer = new byte[40];
 		RtpUtil.buildFIR(buffer, firSeq++, sipSSRC, jabberSSRC);
 
 		try

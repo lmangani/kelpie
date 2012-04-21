@@ -81,14 +81,21 @@ public class RtpUtil
 	 */
 	public static void buildFIR(byte [] buffer, int seq, byte [] senderSsrc, byte [] destSsrc)
 	{
-		buffer[0] = (byte) 0x84;
-		buffer[1] = (byte) 206;
-		buffer[2] = 0;
-		buffer[3] = 4;
-		System.arraycopy(senderSsrc, 0, buffer, 4, 4);
-		System.arraycopy(senderSsrc, 0, buffer, 8, 4);
-		System.arraycopy(destSsrc, 0, buffer, 12, 4);
-		buffer[16] = (byte) seq;
+		byte [] sr ={(byte)0x80,(byte)0xc9,(byte)0x00,(byte)0x01,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x01,(byte)0x81,(byte)0xca,(byte)0x00,(byte)0x02,(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x01,(byte)0x01,(byte)0x01,(byte)0x31,(byte)0x00};
+        	System.arraycopy(sr, 0, buffer, 0, sr.length);
+        	buffer[sr.length+0] = (byte) 0x84;
+        	buffer[sr.length+1] = (byte) 206;
+        	buffer[sr.length+2] = 0;
+        	buffer[sr.length+3] = 4;
+
+        	// packet sender 0001
+        	//System.arraycopy(senderSsrc, 0, buffer, sr.length+4, 4);
+        	buffer[sr.length +4+3] = (byte)0x01;
+
+	        // media source keeps 0
+	        //System.arraycopy(senderSsrc, 0, buffer, sr.length+8, 4);
+	        System.arraycopy(destSsrc, 0, buffer, sr.length+12, 4);
+	        buffer[sr.length+16] = (byte) seq;
 	}
 	
 	public static short getSequenceNumber(byte [] buffer)
