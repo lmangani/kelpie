@@ -80,6 +80,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientVersion = null;
 	private static String fakeId = null;
 	private static boolean mapJID = false;
+	private static boolean featVID = true;
 
 	private static String iconHash;
 	private static byte [] iconData;
@@ -150,6 +151,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		clientVersion = "0.2";
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
+		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 	}
 	
 	private long idNum = 0;
@@ -585,7 +587,10 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					query.setAttributeValue("node", clientName + "#" + clientVersion);
 
 					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
+					if (featVID) {
 					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
+					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
+					}
 
 					p.add(query);
 					
@@ -1257,7 +1262,11 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		
 		StreamElement caps = conn.getDataFactory().createElementNode(new NSI("c", "http://jabber.org/protocol/caps"));
+		if (featVID) {
 		caps.setAttributeValue("ext", "voice-v1 video-v1 camera-v1");
+		} else {
+		caps.setAttributeValue("ext", "voice-v1");
+		}
 		caps.setAttributeValue("node", clientName);
 		caps.setAttributeValue("ver", clientVersion);
 		p.add(caps);
