@@ -97,14 +97,31 @@ public class RtpUtil
 	        System.arraycopy(destSsrc, 0, buffer, sr.length+12, 4);
 	        buffer[sr.length+16] = (byte) seq;
 	}
+
+	public static int getFIRSequence(byte [] buffer, int start, int end)
+    	{
+        	if(start+1 >= end)
+        	{
+        	    // no FIR
+        	    return -1;
+        	}
+
+        	if(buffer[start+1] == (byte)206 && (buffer[start]&0x0F) == (byte)0x04)
+        	{
+        	    // fir found!
+        	    return (int)buffer[start+16]&0xFF;
+        	}
+        	else
+        	{
+        	    // not fir, check next rtcp
+            	int length = getShort(buffer, start+2)*4 + 4;
+            	return getFIRSequence(buffer, start+length, end);
+        	}
+    	}
 	
 	public static short getSequenceNumber(byte [] buffer)
 	{
-		int seq = 0;
-		seq = 0xFF & buffer[2];
-		seq = seq << 8;
-		seq |= 0xFF & buffer[3];
-		return (short) seq;
+		return getShort(buffer, 2);
 	}
 	
 	public static void setSequenceNumber(byte [] buffer, short seq)
