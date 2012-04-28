@@ -113,6 +113,7 @@ public class CallSession
 	
 	boolean sentTransport = false;
 	boolean sentVTransport = false;
+	boolean callAccepted = false;
 
 	Dialog sipDialog;
 	ServerTransaction inviteTransaction;

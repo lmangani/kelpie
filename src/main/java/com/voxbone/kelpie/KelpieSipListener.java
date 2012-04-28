@@ -650,7 +650,6 @@ public class KelpieSipListener implements SipListener
 					}
 					
 					d.sendAck(d.createAck(d.getLocalSeqNumber()));
-					cs.parseSDP(new String(resp.getRawContent()), false);
 					
 					FromHeader fh = (FromHeader) resp.getHeader("From");
 					String dest = ((SipURI) fh.getAddress().getURI()).getUser();		
@@ -658,7 +657,13 @@ public class KelpieSipListener implements SipListener
 					JID destination = UriMappings.toJID(dest);
 					Session sess = SessionManager.findCreateSession(host, destination);
 					
-					sess.sendAccept(cs);
+					if(!cs.callAccepted)
+			                {
+                			        // RFC3261 says that all 200 OK to an invite get passed to UAC, even re-trans, so we need to filter
+                        			cs.parseSDP(new String(resp.getRawContent()), false);
+                        			sess.sendAccept(cs);
+                        			cs.callAccepted = true;
+                    			}
 				}
 				else if (status >= 400)
 				{
