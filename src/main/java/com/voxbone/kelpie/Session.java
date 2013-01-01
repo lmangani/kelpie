@@ -426,6 +426,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							for (int i = "/dial:".length(); i < msg.length(); i++)
 							{
 								cs.relay.sendSipDTMF(msg.charAt(i));
+								/* fix sequential sends for sketchy receivers */
+								Thread.sleep(20);
 							}
 						}
 					}
