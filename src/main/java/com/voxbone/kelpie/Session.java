@@ -87,7 +87,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static int iconSize;
 
 	static Logger logger = Logger.getLogger(Session.class);
-	private static String dtmfmode;
+	private static boolean dtmfmode = false;
 
 	public String internalCallId;
 
