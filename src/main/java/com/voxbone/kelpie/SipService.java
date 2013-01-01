@@ -234,7 +234,7 @@ public class SipService
 		Request req;
 		try
 		{
-			logger.debug("Sending SIP INFO DTMF - Signal: " + dtmf + "Duration:" + dtmfl);
+			logger.debug("Sending SIP INFO DTMF - Signal: " + dtmf + " Duration:" + dtmfl);
 			ContentTypeHeader cth = headerFactory.createContentTypeHeader("application", "dtmf-relay");
 			String body = 	"Signal=" + dtmf + "\r\nDuration="+dtmfl;
 			
