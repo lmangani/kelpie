@@ -228,6 +228,34 @@ public class SipService
 		return true;
 	}
 	
+	
+	public static boolean sendDTMFinfo(CallSession cs, char dtmf)
+	{
+		Request req;
+		try
+		{
+			logger.info("Sending SIP INFO DTMF " + dtmf);
+			ContentTypeHeader cth = headerFactory.createContentTypeHeader("application", "application/dtmf-relay");
+			String body = 	"Signal=" + dtmf + "\n"
+							"Duration=160";
+			
+			req = cs.sipDialog.createRequest(Request.INFO);
+			ClientTransaction t = sipProvider.getNewClientTransaction(req);
+			req.setContent(body, cth);
+			cs.sipDialog.sendRequest(t);				
+		} 
+		catch (SipException e)
+		{
+			logger.error("Error sending FVR INFO", e);
+		} 
+		catch (ParseException e)
+		{
+			logger.error("Error sending FVR INFO", e);
+		}
+		
+		return true;
+	}
+	
 	public static boolean sendVideoUpdate(CallSession cs)
 	{
 		Request req;
