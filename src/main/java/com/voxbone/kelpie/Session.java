@@ -153,6 +153,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
+		dtmfmode = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 	}
 	
 	private long idNum = 0;
@@ -426,7 +427,12 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							logger.debug("[[" + internalCallId + "]] Call found, sending dtmfs");
 							for (int i = "/dial:".length(); i < msg.length(); i++)
 							{
-								cs.relay.sendSipDTMF(msg.charAt(i));
+								if (dtmfmode) {
+									SipService.sendDTMFinfo(cs, msg.charAt(i));
+								} else {
+									cs.relay.sendSipDTMF(msg.charAt(i));
+
+								}
 							}
 						}
 					}
