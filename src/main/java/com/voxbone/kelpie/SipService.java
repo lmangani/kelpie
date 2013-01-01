@@ -229,13 +229,14 @@ public class SipService
 	}
 	
 	
-	public static boolean sendDTMFinfo(CallSession cs, char dtmf)
+	public static boolean sendDTMFinfo(CallSession cs, char dtmf, int dtmfl)
 	{
 		Request req;
 		try
 		{
+			logger.debug("Sending SIP INFO DTMF - Signal: " + dtmf + "Duration:" + dtmfl);
 			ContentTypeHeader cth = headerFactory.createContentTypeHeader("application", "dtmf-relay");
-			String body = 	"Signal=" + dtmf + "\r\nDuration=160";
+			String body = 	"Signal=" + dtmf + "\r\nDuration="+dtmfl;
 			
 			req = cs.sipDialog.createRequest(Request.INFO);
 			ClientTransaction t = sipProvider.getNewClientTransaction(req);
@@ -244,11 +245,11 @@ public class SipService
 		} 
 		catch (SipException e)
 		{
-			logger.error("Error sending FVR INFO", e);
+			logger.error("Error sending DTMF INFO", e);
 		} 
 		catch (ParseException e)
 		{
-			logger.error("Error sending FVR INFO", e);
+			logger.error("Error sending DTMF INFO", e);
 		}
 		
 		return true;
