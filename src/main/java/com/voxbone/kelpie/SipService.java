@@ -234,10 +234,8 @@ public class SipService
 		Request req;
 		try
 		{
-			logger.info("Sending SIP INFO DTMF " + dtmf);
 			ContentTypeHeader cth = headerFactory.createContentTypeHeader("application", "application/dtmf-relay");
-			String body = 	"Signal=" + dtmf + "\n"
-							"Duration=160";
+			String body = 	"Signal=" + dtmf + "\nDuration=160";
 			
 			req = cs.sipDialog.createRequest(Request.INFO);
 			ClientTransaction t = sipProvider.getNewClientTransaction(req);

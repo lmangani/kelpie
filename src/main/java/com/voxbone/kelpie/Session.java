@@ -87,6 +87,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static int iconSize;
 
 	static Logger logger = Logger.getLogger(Session.class);
+	private static String dtmfmode;
 
 	public String internalCallId;
 
@@ -426,6 +427,19 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							for (int i = "/dial:".length(); i < msg.length(); i++)
 							{
 								cs.relay.sendSipDTMF(msg.charAt(i));
+							}
+						}
+					}
+					else if (msg.startsWith("/dtmf:"))
+					{
+						logger.debug("[[" + internalCallId + "]] DTMF command detected");
+						CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
+						if (cs != null)
+						{
+							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
+							logger.debug("[[" + internalCallId + "]] Call found, sending SIP-INFO DTMF");
+							for (int i = "/dtmf:".length(); i < msg.length(); i++)
+							{
 								SipService.sendDTMFinfo(cs, msg.charAt(i));
 
 							}
