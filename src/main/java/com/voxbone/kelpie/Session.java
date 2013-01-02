@@ -403,7 +403,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				StreamElement body = evt.getData().getFirstElement("body");
 				if (body != null) 
 				{
-					String msg = body.normalizeText().toLowerCase();
+					String msg = body.normalizeText();
 					logger.debug("[[" + internalCallId + "]] Body=" + msg);
 	
 					MessageMessage mm = new MessageMessage(evt.getData());
@@ -420,7 +420,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						
 						sess.startCall(cs, evt.getData().getTo().getNode(), UriMappings.toSipId(evt.getData().getFrom()));
 					}
-					else if (msg.startsWith("/dial:"))
+					else if (msg.startsWith("/dial:")  || msg.toLowerCase().startsWith("/dial:") )
 					{
 						logger.debug("[[" + internalCallId + "]] DIAL command detected");
 						CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
