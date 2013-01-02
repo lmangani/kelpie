@@ -403,7 +403,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				StreamElement body = evt.getData().getFirstElement("body");
 				if (body != null) 
 				{
-					String msg = body.toLowerCase().normalizeText();
+					String msg = body.normalizeText().toLowerCase();
 					logger.debug("[[" + internalCallId + "]] Body=" + msg);
 	
 					MessageMessage mm = new MessageMessage(evt.getData());
