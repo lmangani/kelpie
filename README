@@ -1,4 +1,4 @@
-***** This is a DEVELOPMENT FORK! Please see the WIKI for more details! *******
+***** OpenKelp is a DEVELOPMENT FORK! Please see the WIKI for full details! *******
 
 The original "vanilla" Kelpie can be found at http://code.google.com/p/kelpie
 
@@ -24,12 +24,5 @@ if it is found it forwards the message to the specified xmpp server. If the cont
 not mapped, Kelpie will attempt to lookup its fullJID and send an invite/request.
 
 
-example:
-com.voxbone.kelpie.mapping.user=user@jabber.org
-would map sent to sip:user@{kelpie.hostname} to user@jabber.org
-
-
-if you don't want to use the mapping file, the format
-sip:user+xmpp-server@{kelpie.hostname} can also be used instead
-
+For Instructions and Examples please check out the Wiki: https://github.com/lmangani/kelpie/wiki
 
