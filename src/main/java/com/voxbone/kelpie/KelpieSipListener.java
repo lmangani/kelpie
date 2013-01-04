@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Properties;
 import java.text.ParseException;
 
 import javax.sip.ClientTransaction;
@@ -67,8 +68,15 @@ public class KelpieSipListener implements SipListener
 	Logger logger = Logger.getLogger(this.getClass());
 
 	String host;
+	
+	private static boolean optionsmode = false;
+	
+	public static void configure(Properties properties)
+	{
+		optionsmode = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.options.probe", "false"));
 
-
+	}
+	
 	public KelpieSipListener(String host)
 	{
 		this.host = host;
@@ -491,7 +499,20 @@ public class KelpieSipListener implements SipListener
 			}
 			else if (req.getMethod().equals(Request.OPTIONS))
 			{
-				int resp = Response.OK;
+				if (optionsmode) {
+					
+					if (evt.getDialog() != null)
+					{
+						logger.info("[[SIP]] Got in dialog OPTIONS");
+						
+					} else {
+						
+						return;
+					}
+				}
+				
+				int	resp = Response.OK;
+			
 				try
 				{
 					DatagramSocket ds = new DatagramSocket();

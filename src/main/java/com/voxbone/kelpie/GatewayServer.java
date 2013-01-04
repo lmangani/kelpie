@@ -148,6 +148,7 @@ public class GatewayServer
 		SipSubscriptionManager.configure(properties);
 		UriMappings.configure(properties);
 		RtpRelay.configure(properties);
+		KelpieSipListener.configure(properties);
 		
 
 		host = properties.getProperty("com.voxbone.kelpie.hostname");
