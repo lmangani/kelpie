@@ -94,7 +94,7 @@ public class UriMappings
 			}
 		}
 		
-		if (sip_id.contains("+"))
+		if (sip_id.contains("+") && !sip_id.startsWith("+") )
 		{
 				String [] fields = sip_id.split("\\+", 2);
 				JID jid = new JID(fields[0] + "@" + fields[1]);
