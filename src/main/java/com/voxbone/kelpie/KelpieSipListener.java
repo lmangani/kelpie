@@ -499,20 +499,23 @@ public class KelpieSipListener implements SipListener
 			}
 			else if (req.getMethod().equals(Request.OPTIONS))
 			{
+				
+				int	resp = Response.OK;
+				
 				if (optionsmode) {
 					
 					if (evt.getDialog() != null)
 					{
 						logger.info("[[SIP]] Got in dialog OPTIONS");
+						resp = Response.OK;
 						
 					} else {
 						
-						return;
+						logger.info("[[SIP]] Rejecting out-of-dialog OPTIONS");
+						resp = Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST;
 					}
 				}
 				
-				int	resp = Response.OK;
-			
 				try
 				{
 					DatagramSocket ds = new DatagramSocket();
