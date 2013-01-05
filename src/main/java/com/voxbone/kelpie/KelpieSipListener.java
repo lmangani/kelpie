@@ -504,10 +504,19 @@ public class KelpieSipListener implements SipListener
 				
 				if (optionsmode) {
 					
+					
 					if (evt.getDialog() != null)
 					{
+								
 						logger.info("[[SIP]] Got in dialog OPTIONS");
 						resp = Response.OK;
+							
+							// temp: debug message to validate this OPTIONS scenario
+							CallSession cs = (CallSession) evt.getDialog().getApplicationData();
+							if (cs == null) 
+							{ 
+								logger.error("[[SIP]] OPTIONS CallSession is null?");	
+							} 
 						
 					} else {
 						
