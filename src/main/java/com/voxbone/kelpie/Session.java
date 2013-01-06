@@ -464,7 +464,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					
 					else if (msg.equals("/echo") || msg.startsWith("/echo"))
                     {
-                            logger.debug("[[" + internalCallId + "]] Got a STATUS request!");
+                            logger.debug("[[" + internalCallId + "]] Got an ECHO request");
                             Packet p = conn.getDataFactory().createPacketNode(new NSI("message", "jabber:server"), Packet.class);
 
                             p.setFrom(evt.getData().getTo());
@@ -472,7 +472,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
                             p.setID(evt.getData().getID());
                             p.addElement("body");
                             String echo = msg.substring(msg.lastIndexOf('/') + 5);
-                            p.getFirstElement("body").addText("You Said: "+ echo);
+                            p.getFirstElement("body").addText("Echo: "+ echo);
                             p.setAttributeValue("type", "chat");
                             Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
                             sess.sendPacket(p);
