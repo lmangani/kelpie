@@ -72,6 +72,8 @@ public class SipService
 	private int localport;
 	private static String localip;
 	private static String remoteip;
+	private static String remoteim;
+
 
 
 	public SipService(Properties properties)
@@ -79,6 +81,7 @@ public class SipService
 		localip = properties.getProperty("com.voxbone.kelpie.ip");
 		localport = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.sip_port", "5060"));
 		remoteip = properties.getProperty("com.voxbone.kelpie.sip_gateway");
+		remoteim = properties.getProperty("com.voxbone.kelpie.im_gateway", remoteip);
 		
 		sipListener = new KelpieSipListener(properties.getProperty("com.voxbone.kelpie.hostname"));
 
@@ -126,6 +129,11 @@ public class SipService
 	public static String getRemoteIP()
 	{
 		return remoteip;
+	}
+	
+	public static String getRemoteIM()
+	{
+		return remoteim;
 	}
 	
 	public static String getLocalIP()
@@ -365,10 +373,10 @@ public class SipService
 		ToHeader toHeader = null;
 		URI requestURI = null;
 		URI fromURI = null;
-
+		
 		try
 		{
-			requestURI = addressFactory.createURI("sip:" + mm.to + "@" + remoteip);
+			requestURI = addressFactory.createURI("sip:" + mm.to + "@" + remoteim);
 			toHeader = headerFactory.createToHeader(addressFactory.createAddress(requestURI), null);
 			fromURI = addressFactory.createURI("sip:" + mm.from + "@" + domain);
 			fromHeader = headerFactory.createFromHeader(addressFactory.createAddress(fromURI), null);
