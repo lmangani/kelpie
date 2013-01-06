@@ -123,6 +123,25 @@ public class KelpieSipListener implements SipListener
 					}
 					return;					
 				}
+				
+				if (mm.body.startsWith("/echo")) {
+					
+                    mm.body = mm.body.substring(mm.body.lastIndexOf('/') + 5);
+                    mm.to = mm.from;
+                    String domain = host;
+
+                    SipSubscription sub = SipSubscriptionManager.getWatcher(mm.from, mm.to);
+                    if (sub != null)
+                    {
+                            domain = ((SipURI)sub.remoteParty.getURI()).getHost();
+                    }
+                    logger.debug("[[SIP]] Echo message: " + mm.body);
+                    SipService.sendMessageMessage(mm, domain);
+                    return;
+
+            }
+
+				
 				logger.debug("[[SIP]] Jabber destination is " + destination);
 				
 				Session sess = SessionManager.findCreateSession(host, destination);
