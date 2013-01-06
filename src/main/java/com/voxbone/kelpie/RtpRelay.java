@@ -68,6 +68,7 @@ public class RtpRelay extends Thread
 	
 	private static boolean NAT_ENABLE = false;
 	private static boolean FIR_ENABLE = false;
+	private static boolean RTP_DEBUG = false;
 	
 	Timer retransTimer = new Timer("Stun Retransmit Thread");
 	
@@ -90,7 +91,11 @@ public class RtpRelay extends Thread
 
 		public void run()
 		{
+			
+			if (RTP_DEBUG) {
 			logger.debug("[[" + cs.internalCallId + "]] Running RtpRelay::StunTransmitter ... : " + dest + " -- " + socket.socket().getLocalPort());
+			}
+			
 			try
 			{
 				if (socket.isOpen()) 
@@ -440,7 +445,10 @@ public class RtpRelay extends Thread
 						if(user.getUsername().startsWith(st.localUser))
 						{
 							me = st.localUser;
-							logger.debug("Local User found " + me);
+							
+							if (RTP_DEBUG) {
+								logger.debug("Local User found " + me);
+							}
 						}
 						
 						if(src.equals(st.dest))
@@ -883,6 +891,8 @@ public class RtpRelay extends Thread
 		RTP_MAX_PORT = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.max_port", "10000"));
 		NAT_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.nat_enable", "false"));
 		FIR_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.fir_enable", "false"));
+		RTP_DEBUG = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.debug", "false"));
+
 
 		nextPort = RTP_MIN_PORT;		
 	}
