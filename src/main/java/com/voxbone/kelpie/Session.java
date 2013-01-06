@@ -496,15 +496,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				   
 					 		logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
 					 		// should we notify this error to the sender?
-                             Packet p = conn.getDataFactory().createPacketNode(new NSI("message", "jabber:server"), Packet.class);
-                             p.setFrom(evt.getData().getTo());
-                             p.setTo(evt.getData().getFrom());
-                             p.setID(evt.getData().getID());
-                             p.addElement("body");
-                             p.getFirstElement("body").addText("Error!");
-                             p.setAttributeValue("type", "chat");
-                             Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
-                             sess.sendPacket(p);
+					 		
 			}
 			else if (evt.getData().getQualifiedName().equals(":presence"))
 			{
