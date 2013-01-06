@@ -2,7 +2,7 @@
 
 The original "vanilla" Kelpie can be found at http://code.google.com/p/kelpie
 
-Kelpie is an SIP to XMPP gateway
+Kelpie is a SIP <> XMPP gateway
 
 It attempts to make sip endpoints appear as xmpp endpoints and vice-versa supporting voice and video calls, im and presence.
 
