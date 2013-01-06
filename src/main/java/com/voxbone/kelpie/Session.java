@@ -483,20 +483,23 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 						SipService.sendMessageMessage(mm, domain);
 					}
-				} else {
+				}  /*
+				else {
+					
 					StreamElement acstat = evt.getData().getFirstElement();
 	                if (acstat != null)
 	                	{
 	                		logger.debug("[[" + internalCallId + "]] Status = ");
-	                        return;
+	                        // return;
 	                	}
 					}
+				*/
 				}
 			   } else if (evt.getData().getAttributeValue("type").equals("error")) {
 				   
 					 		logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
 					 		// should we notify this error to the sender?
-					 		
+			   
 			}
 			else if (evt.getData().getQualifiedName().equals(":presence"))
 			{
