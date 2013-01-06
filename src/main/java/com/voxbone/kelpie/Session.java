@@ -400,6 +400,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			{
 			   if (evt.getData().getAttributeValue("type").equals("chat")) {
 				logger.debug("[[" + internalCallId + "]] Got an IM");
+				
 				StreamElement body = evt.getData().getFirstElement("body");
 				if (body != null) 
 				{
@@ -453,7 +454,23 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 							}
 						}
-					}
+					} 
+					else if (msg.equals("/echo") || msg.startsWith("/echo"))
+                    {
+                            logger.debug("[[" + internalCallId + "]] Got a STATUS request!");
+                            Packet p = conn.getDataFactory().createPacketNode(new NSI("message", "jabber:server"), Packet.class);
+
+                            p.setFrom(evt.getData().getTo());
+                            p.setTo(evt.getData().getFrom());
+                            p.setID(evt.getData().getID());
+                            p.addElement("body");
+                            String echo = msg.substring(msg.lastIndexOf('/') + 5);
+                            p.getFirstElement("body").addText("You Said: "+ echo);
+                            p.setAttributeValue("type", "chat");
+                            Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
+                            sess.sendPacket(p);
+                    }
+					
 					else
 					{
 						/* For coherence, we try to use the domain he has used in his subscription */
@@ -466,11 +483,28 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 						SipService.sendMessageMessage(mm, domain);
 					}
+				} else {
+					StreamElement acstat = evt.getData().getFirstElement();
+	                if (acstat != null)
+	                	{
+	                		logger.debug("[[" + internalCallId + "]] Status = ");
+	                        return;
+	                	}
+					}
 				}
 			   } else if (evt.getData().getAttributeValue("type").equals("error")) {
-					 logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
-					// should we notify this error to the sender?
-			   }
+				   
+					 		logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
+					 		// should we notify this error to the sender?
+                             Packet p = conn.getDataFactory().createPacketNode(new NSI("message", "jabber:server"), Packet.class);
+                             p.setFrom(evt.getData().getTo());
+                             p.setTo(evt.getData().getFrom());
+                             p.setID(evt.getData().getID());
+                             p.addElement("body");
+                             p.getFirstElement("body").addText("Error!");
+                             p.setAttributeValue("type", "chat");
+                             Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
+                             sess.sendPacket(p);
 			}
 			else if (evt.getData().getQualifiedName().equals(":presence"))
 			{
