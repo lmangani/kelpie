@@ -741,6 +741,16 @@ public class KelpieSipListener implements SipListener
 					}
 				}
 			}
+			// Very basic MESSAGE handling for replies
+			else if (method.equals(Request.MESSAGE))
+			{
+				if (status >= 400) {
+					logger.info("[[SIP]] MESSAGE failed with status "+status);
+				}
+				else if (status == 200) {
+					logger.info("[[SIP]] MESSAGE delivered");
+				}
+			}
 		}
 		catch (Exception e)
 		{
