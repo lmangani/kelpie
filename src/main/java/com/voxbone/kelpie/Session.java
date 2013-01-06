@@ -398,7 +398,11 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			         && evt.getData().getAttributeValue("type") != null )
 			         //&& evt.getData().getAttributeValue("type").equals("chat"))
 			{
-			   if (evt.getData().getAttributeValue("type").equals("chat")) {
+				if (evt.getData().getAttributeValue("type").equals("error")) {
+				 	logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
+				 	// should we notify this error to the sender?
+				}
+				else if (evt.getData().getAttributeValue("type").equals("chat")) {
 				logger.debug("[[" + internalCallId + "]] Got an IM");
 				
 				StreamElement body = evt.getData().getFirstElement("body");
@@ -421,6 +425,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						
 						sess.startCall(cs, evt.getData().getTo().getNode(), UriMappings.toSipId(evt.getData().getFrom()));
 					}
+					
 					else if (msg.startsWith("/dial:")  || msg.toLowerCase().startsWith("/dial:") )
 					{
 						logger.debug("[[" + internalCallId + "]] DIAL command detected");
@@ -440,6 +445,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 						}
 					}
+					
 					else if (msg.startsWith("/dtmf:"))
 					{
 						logger.debug("[[" + internalCallId + "]] DTMF command detected");
@@ -455,6 +461,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 						}
 					} 
+					
 					else if (msg.equals("/echo") || msg.startsWith("/echo"))
                     {
                             logger.debug("[[" + internalCallId + "]] Got a STATUS request!");
@@ -473,6 +480,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					
 					else
 					{
+						/* Forward the message to SIP side */
 						/* For coherence, we try to use the domain he has used in his subscription */
 						String domain = host;
 	
@@ -483,24 +491,11 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 						SipService.sendMessageMessage(mm, domain);
 					}
-				}  /*
-				else {
-					
-					StreamElement acstat = evt.getData().getFirstElement();
-	                if (acstat != null)
-	                	{
-	                		logger.debug("[[" + internalCallId + "]] Status = ");
-	                        // return;
-	                	}
-					}
-				*/
+				  } 
 				}
-			   } else if (evt.getData().getAttributeValue("type").equals("error")) {
-				   
-					 		logger.debug("[[" + internalCallId + "]] got an MESSAGE error ");
-					 		// should we notify this error to the sender?
 			   
-			}
+			} 
+			
 			else if (evt.getData().getQualifiedName().equals(":presence"))
 			{
 				logger.debug("[[" + internalCallId + "]] Got presence stanza");
