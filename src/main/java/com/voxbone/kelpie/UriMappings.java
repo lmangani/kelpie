@@ -101,7 +101,7 @@ public class UriMappings
 			}
 		}
 		
-		if (sip_id.contains("+") && !sip_id.startsWith("+") && (fwdJID && fwdDOMAIN != null) )
+		if (sip_id != null && !sip_id.startsWith("+") && (fwdJID && fwdDOMAIN != null) )
 		{
 			// full domain forwarder mode
 			String [] fields = sip_id.split("\\+", 2);
