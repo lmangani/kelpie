@@ -67,6 +67,10 @@ public class SessionManager
 
 	public static Session findCreateSession(String from, JID destination)
 	{
+		if (destination == null) {
+			logger.debug("[[SIP]] NULL destination received from " + from);
+		}
+		
 		logger.info("Finding session for " + destination);
 		Session sess = getSession(destination);
 		
