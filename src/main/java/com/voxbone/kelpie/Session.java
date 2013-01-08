@@ -79,16 +79,17 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientName = null;
 	private static String clientVersion = null;
 	private static String fakeId = null;
-	private static boolean mapJID = false;
+	// private static boolean mapJID = false;
 	private static boolean featVID = true;
+	private static boolean useDtmfInfo = false;
+	private static int dtmfDuration;
 
 	private static String iconHash;
 	private static byte [] iconData;
 	private static int iconSize;
 
 	static Logger logger = Logger.getLogger(Session.class);
-	private static boolean dtmfmode = false;
-	private static int dtmfduration;
+
 
 	public String internalCallId;
 
@@ -150,12 +151,12 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	public static void configure(Properties properties)
 	{
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
-		clientVersion = "0.2";
+		clientVersion = "0.2.2";
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
-		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
+		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
-		dtmfmode = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
-		dtmfduration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
+		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
+		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 
 	}
 	
@@ -436,8 +437,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							logger.debug("[[" + internalCallId + "]] Call found, sending dtmfs");
 							for (int i = "/dial:".length(); i < msg.length(); i++)
 							{
-								if (dtmfmode) {
-									SipService.sendDTMFinfo(cs, msg.charAt(i), dtmfduration);
+								if (useDtmfInfo) {
+									SipService.sendDTMFinfo(cs, msg.charAt(i), dtmfDuration);
 								} else {
 									cs.relay.sendSipDTMF(msg.charAt(i));
 
@@ -456,7 +457,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							logger.debug("[[" + internalCallId + "]] Call found, sending SIP-INFO DTMF");
 							for (int i = "/dtmf:".length(); i < msg.length(); i++)
 							{
-								SipService.sendDTMFinfo(cs, msg.charAt(i), dtmfduration);
+								SipService.sendDTMFinfo(cs, msg.charAt(i), dtmfDuration);
 
 							}
 						}
