@@ -36,6 +36,10 @@ public class UriMappings
 	private static String host;
 	private static String fakeId;
 	private static boolean mapJID = false;
+	private static boolean fwdJID = false;
+	private static String fwdDOMAIN;
+
+
 	
 	private static class Mapping
 	{
@@ -54,6 +58,9 @@ public class UriMappings
 	public static void configure(Properties properties) {
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
+		fwdJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.forward", "false"));
+		fwdDOMAIN = properties.getProperty("com.voxbone.kelpie.map.forward.domain", "gmail.com");
+
 		buildMap(properties);
 	}
 	
@@ -74,7 +81,7 @@ public class UriMappings
 		for (Object okey : p.keySet())
 		{
 			String key = (String) okey;
-			if (key.startsWith("com.voxbone.kelpie.mapping"))
+			if (key.startsWith("com.voxbone.kelpie.mapping") && fwdJID == false)
 			{
 				String sip_id = key.substring("com.voxbone.kelpie.mapping.".length());				
 				JID jid = new JID((String) p.get(key));
@@ -94,7 +101,46 @@ public class UriMappings
 			}
 		}
 		
-		if (sip_id.contains("+") && !sip_id.startsWith("+") )
+		if (sip_id.contains("+") && !sip_id.startsWith("+") && (fwdJID && fwdDOMAIN != null) )
+		{
+			// full domain forwarder mode
+			String [] fields = sip_id.split("\\+", 2);
+			JID jid = new JID(fields[0] + "@" + fwdDOMAIN );
+			log.debug("Adding forwarder " + sip_id + " => " + jid );
+			mappings.add(new Mapping(sip_id, jid));
+			
+			for (Mapping m : mappings)
+			{
+				if (m.jid == jid)
+				{
+				Session sess = SessionManager.findCreateSession(host, m.jid);		
+				try {
+				sess.sendSubscribeRequest(new JID(fakeId + "@" + host), m.jid, "subscribe");
+				} catch (Exception e) {
+				log.debug("Error " + e + " subscribing to " + sip_id + " => " + jid);
+				}
+					int count = 0;
+					while (count < 5 && m.voiceResource == null) 
+					    try {
+						log.debug("NULL resource for " + jid);
+						count++;
+						Thread.sleep(500);
+                                        	} catch (Exception ex) { continue; }
+
+					if (m.voiceResource == null && mapJID) {
+						log.debug("Removing forwarder " + sip_id + " => " + jid );
+						mappings.remove(m);
+						SessionManager.removeSession(SessionManager.getSession(jid));
+						return null;
+					}
+
+				}
+			}
+
+		return jid;
+			
+		}
+		else if (sip_id.contains("+") && !sip_id.startsWith("+") )
 		{
 				String [] fields = sip_id.split("\\+", 2);
 				JID jid = new JID(fields[0] + "@" + fields[1]);
