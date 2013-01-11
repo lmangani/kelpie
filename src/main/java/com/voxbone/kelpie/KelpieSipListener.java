@@ -178,6 +178,8 @@ public class KelpieSipListener implements SipListener
 				String dest = ((SipURI) ruri).getUser();
 				SipSubscription sub = SipSubscriptionManager.getWatcherByCallID(dest, callid);
 				
+				// implement call for SIP:user+domain@kelpie => JID:user@domain?
+				
 				ToHeader th = (ToHeader) req.getHeader("To");
 				
 				int expires = ((ExpiresHeader) req.getHeader(ExpiresHeader.NAME)).getExpires();

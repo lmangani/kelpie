@@ -83,6 +83,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String fakeId = null;
 	// private static boolean mapJID = false;
 	private static boolean featVID = true;
+	private static boolean featPMUC = true;
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
 
@@ -158,6 +159,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
+		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 
@@ -1315,11 +1317,16 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		
 		StreamElement caps = conn.getDataFactory().createElementNode(new NSI("c", "http://jabber.org/protocol/caps"));
-		if (featVID) {
-		caps.setAttributeValue("ext", "voice-v1 video-v1 camera-v1");
-		} else {
-		caps.setAttributeValue("ext", "voice-v1");
+		String features_ext = "voice-v1";
+		
+		if (featPMUC) {
+			features_ext = features_ext + " pmuc-v1";
 		}
+		if (featVID) {
+			features_ext = features_ext + " video-v1 camera-v1";
+		}
+		
+		caps.setAttributeValue("ext", features_ext);
 		caps.setAttributeValue("node", clientName);
 		caps.setAttributeValue("ver", clientVersion);
 		p.add(caps);
