@@ -154,7 +154,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	public static void configure(Properties properties)
 	{
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
-		clientVersion = "0.2.2";
+		clientVersion = "0.2.3";
 		clientPriority = properties.getProperty("com.voxbone.kelpie.feature.priority", "24");
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
@@ -640,11 +640,14 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					
 					StreamElement query = conn.getDataFactory().createElementNode(new NSI("query", "http://jabber.org/protocol/disco#info"));
 					query.setAttributeValue("node", clientName + "#" + clientVersion);
-
-					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
+					
+					if (featPMUC) {
+						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
+					}
+						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
 					if (featVID) {
-					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
-					query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
+						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
+						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
 					}
 
 					p.add(query);
