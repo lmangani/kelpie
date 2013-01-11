@@ -480,6 +480,10 @@ class Session extends Thread implements StreamStatusListener, PacketListener
                             String echo = msg.substring(msg.lastIndexOf('/') + 5);
                             p.getFirstElement("body").addText("Echo: "+ echo);
                             p.setAttributeValue("type", "chat");
+                            p.setAttributeValue("iconset", "round");
+                            // initial experiment with chatstates
+                            StreamElement chatstate = conn.getDataFactory().createElementNode(new NSI("active", "http://jabber.org/protocol/chatstates"));
+                            p.add(chatstate);
                             Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
                             sess.sendPacket(p);
                     }
@@ -509,7 +513,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 				if (type == null || type.equals("unavailable"))
 				{
-					logger.debug("[[" + internalCallId + "]] Got a presence message");
+					logger.debug("[[" + internalCallId + "]] Got a presence message from " + evt.getData().getFrom() );
 					
 					StreamElement caps = evt.getData().getFirstElement(new NSI("c", "http://jabber.org/protocol/caps"));
 					
@@ -520,6 +524,16 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						{
 							logger.debug("[[" + internalCallId + "]] Voice support detected, taking note");
 							UriMappings.addVoiceResource(evt.getData().getFrom());
+						}
+						/*
+						if (caps.getAttributeValue("ext").contains("video-v1"))
+						{
+							logger.debug("[[" + internalCallId + "]] Video support detected, not taking note");
+						}
+						*/
+						if (caps.getAttributeValue("ext").contains("vainvite-v1"))
+						{
+							logger.debug("[[" + internalCallId + "]] 'vainvite' undocumented feature. Ignored for now. [" + evt.getData().getFrom() + "]" );
 						}
 					}
 					Presence pres = new Presence(evt.getData());
@@ -536,7 +550,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				{
 					if (type.equals("subscribe"))
 					{
-						logger.debug("[[" + internalCallId + "]] New subscription received");
+						logger.debug("[[" + internalCallId + "]] New subscription received from " + evt.getData().getFrom() );
 						String from = UriMappings.toSipId(evt.getData().getFrom());
 						String to = evt.getData().getTo().getNode();
 						
@@ -1323,7 +1337,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		String features_ext = "voice-v1";
 		
 		if (featPMUC) {
-			features_ext = features_ext + " pmuc-v1";
+			features_ext = "pmuc-v1 " + features_ext;
 		}
 		if (featVID) {
 			features_ext = features_ext + " video-v1 camera-v1";
