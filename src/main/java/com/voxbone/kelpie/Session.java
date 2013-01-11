@@ -78,6 +78,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 	private static String clientName = null;
 	private static String clientVersion = null;
+	private static String clientPriority;
+
 	private static String fakeId = null;
 	// private static boolean mapJID = false;
 	private static boolean featVID = true;
@@ -152,6 +154,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	{
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
 		clientVersion = "0.2.2";
+		clientPriority = properties.getProperty("com.voxbone.kelpie.feature.priority", "24");
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
@@ -1338,7 +1341,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		if (pres.resource != null && pres.resource.equals("KelpiePhone"))
 		{
 			StreamElement priority =  conn.getDataFactory().createElementNode(new NSI("priority", Utilities.SERVER_NAMESPACE));
-			priority.addText("0.1");
+			priority.addText(clientPriority);
 			p.add(priority);
 		}
 		else
