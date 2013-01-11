@@ -213,7 +213,7 @@ public class KelpieSipListener implements SipListener
 						}
 						else
 						{
-							logger.warn("[[SIP]] Unknown in-dialog subscribe, rejecting");
+							logger.warn("[[SIP]] Rejecting Unknown in-dialog subscribe for "+ ruri);
 							res = SipService.messageFactory.createResponse(481, req);
 						}
 					}

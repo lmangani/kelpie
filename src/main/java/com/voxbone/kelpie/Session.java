@@ -598,9 +598,9 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					}
 					else if (type.equals("probe"))
 					{
-						logger.debug("[[" + internalCallId + "]] Probe received");
 						String from = UriMappings.toSipId(evt.getData().getFrom());
 						String to = evt.getData().getTo().getNode();
+						logger.debug("[[" + internalCallId + "]] Probe received from " + from + " to " + to);
 						
 						if (!to.equals(fakeId))
 						{
