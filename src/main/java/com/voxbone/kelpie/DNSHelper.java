@@ -18,9 +18,6 @@ package com.voxbone.kelpie;
 
 
 import org.xbill.DNS.*;
-
-import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.logging.Logger;
 
