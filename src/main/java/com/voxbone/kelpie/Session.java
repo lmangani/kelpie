@@ -84,6 +84,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	// private static boolean mapJID = false;
 	private static boolean featVID = true;
 	private static boolean featPMUC = true;
+	private static boolean featSMS = false;
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
 
@@ -160,6 +161,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
+		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 
@@ -658,8 +660,13 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					if (featPMUC) {
 						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
 					}
+					if (featSMS) {
+						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
+					}
+					
 						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
-					if (featVID) {
+					
+						if (featVID) {
 						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
 						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
 					}
@@ -1335,6 +1342,10 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		StreamElement caps = conn.getDataFactory().createElementNode(new NSI("c", "http://jabber.org/protocol/caps"));
 		String features_ext = "voice-v1";
+		
+		if (featSMS) {
+			features_ext = "sms-v1 " + features_ext;
+		}
 		
 		if (featPMUC) {
 			features_ext = "pmuc-v1 " + features_ext;
