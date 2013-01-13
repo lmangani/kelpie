@@ -49,6 +49,7 @@ import javax.sip.header.ContactHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
@@ -70,10 +71,14 @@ public class KelpieSipListener implements SipListener
 	String host;
 	
 	private static boolean optionsmode = false;
+	private static boolean subscribeRport = false;
+
 	
 	public static void configure(Properties properties)
 	{
 		optionsmode = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.options.probe", "false"));
+		subscribeRport = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.subscribe.rport", "false"));
+
 
 	}
 	
@@ -174,17 +179,28 @@ public class KelpieSipListener implements SipListener
 				String callid = ((CallIdHeader) req.getHeader(CallIdHeader.NAME)).getCallId();
 				FromHeader fh = (FromHeader) req.getHeader("From");
 				URI ruri = req.getRequestURI();
+				
 				String src = ((SipURI) fh.getAddress().getURI()).getUser();
 				String dest = ((SipURI) ruri).getUser();
 				SipSubscription sub = SipSubscriptionManager.getWatcherByCallID(dest, callid);
 				
-				// implement call for SIP:user+domain@kelpie => JID:user@domain?
-				
+				if (subscribeRport) {
+	               // ContactHeader contact = (ContactHeader) req.getHeader(ContactHeader.NAME);
+	               ViaHeader viaHeaderr = (ViaHeader)req.getHeader(ViaHeader.NAME);
+	               int rport = Integer.parseInt( viaHeaderr.getParameter("rport") );
+	               String received = viaHeaderr.getParameter("received");
+	               logger.debug("[[SIP]] Forcing Contact RPORT: "+received+":"+rport);
+	               Address localrAddress = SipService.addressFactory.createAddress("sip:" + src + "@" + received + ":" + rport );
+	               ContactHeader nch = SipService.headerFactory.createContactHeader(localrAddress);
+	               req.removeHeader("Contact");
+	               req.addHeader(nch);
+				}
+
 				ToHeader th = (ToHeader) req.getHeader("To");
 				
 				int expires = ((ExpiresHeader) req.getHeader(ExpiresHeader.NAME)).getExpires();
 
-				Response res = SipService.messageFactory.createResponse(Response.OK, req);
+				Response res = SipService.messageFactory.createResponse(Response.ACCEPTED, req);
 				
 				if (expires > 0)
 				{
