@@ -492,6 +492,23 @@ class Session extends Thread implements StreamStatusListener, PacketListener
                             Session sess = SessionManager.findCreateSession(evt.getData().getTo().getDomain(), evt.getData().getFrom());
                             sess.sendPacket(p);
                     }
+					else if (msg.equals("/me") || msg.startsWith("/me"))
+                    {
+                        
+                            String slashme = msg.substring(msg.lastIndexOf('/') + 3);
+                            StreamElement newbody = conn.getDataFactory().createElementNode(new NSI("body", slashme));
+                            body = newbody;
+                            logger.debug("[[" + internalCallId + "]] Got a SLASHME request:");
+                            String domain = host;
+                        	
+    						SipSubscription sub = SipSubscriptionManager.getWatcher(mm.from, mm.to);
+    						if (sub != null)
+    						{
+    							domain = ((SipURI)sub.remoteParty.getURI()).getHost();
+    						}
+    						SipService.sendMessageMessage(mm, domain);
+                           
+                    }
 					
 					else
 					{

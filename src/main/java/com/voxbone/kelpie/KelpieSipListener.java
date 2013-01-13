@@ -140,12 +140,15 @@ public class KelpieSipListener implements SipListener
                     {
                             domain = ((SipURI)sub.remoteParty.getURI()).getHost();
                     }
-                    logger.debug("[[SIP]] Echo message: " + mm.body);
+                    // logger.debug("[[SIP]] Echo message: " + mm.body);
                     SipService.sendMessageMessage(mm, domain);
                     return;
 
-            }
+				} else if (mm.body.startsWith("/me")) {
+				
+	                mm.body = mm.from + " " + mm.body.substring(mm.body.lastIndexOf('/') + 3);
 
+                }
 				
 				logger.debug("[[SIP]] Jabber destination is " + destination);
 				
