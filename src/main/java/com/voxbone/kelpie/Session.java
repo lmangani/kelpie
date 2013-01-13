@@ -698,12 +698,14 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					
 						if (featPING) {
 							// Result Pong
+							logger.debug("[[" + internalCallId + "]] Replying to XMPP PING request");
 							p.setFrom(packet.getTo());
 							p.setTo(packet.getFrom());
 							p.setID(packet.getID());
 							p.setAttributeValue("type", "result");
 						} else {
 							// XMPP Ping Not Supported
+							logger.debug("[[" + internalCallId + "]] Rejecting XMPP PING request");
 							p.setFrom(packet.getTo());
 							p.setTo(packet.getFrom());
 							p.setID(packet.getID());
