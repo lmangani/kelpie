@@ -85,6 +85,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featVID = true;
 	private static boolean featPMUC = true;
 	private static boolean featSMS = false;
+	private static boolean featPING = false;
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
 
@@ -162,6 +163,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
 		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
+		featPING = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.xmpp-ping", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 
@@ -402,6 +404,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				}
 
 			}
+			
 			else if (   evt.getData().getQualifiedName().equals(":message")
 			         && evt.getData().getAttributeValue("type") != null )
 			         //&& evt.getData().getAttributeValue("type").equals("chat"))
@@ -657,25 +660,66 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					StreamElement query = conn.getDataFactory().createElementNode(new NSI("query", "http://jabber.org/protocol/disco#info"));
 					query.setAttributeValue("node", clientName + "#" + clientVersion);
 					
-					if (featPMUC) {
-						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
-					}
-					if (featSMS) {
-						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
-					}
+					// Google-Centric Feature Set
 					
-						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
-					
+						if (featPMUC) {
+							query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
+						}
+						if (featSMS) {
+							query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/pmuc/v1");	
+						}
+				
+						// Voice MUST be enabled
+							query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/voice/v1");
+						
 						if (featVID) {
-						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
-						query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
-					}
+							query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/video/v1");
+							query.addElement("feature").setAttributeValue("var", "http://www.google.com/xmpp/protocol/camera/v1");
+						}
+						
+					// General XEP Set
+						
+						if (featPING) {
+							// xep-0199
+							query.addElement("feature").setAttributeValue("var", "urn:xmpp:ping");
+						}
 
 					p.add(query);
 					
 					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 					sess.sendPacket(p);
 				}
+				// XEP-0199
+				else if (   packet.getAttributeValue("type").equals("get")
+					    && packet.getFirstElement().getNSI().equals(new NSI("ping", "urn:xmpp:ping")))
+					{
+					
+					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+					
+						if (featPING) {
+							// Result Pong
+							p.setFrom(packet.getTo());
+							p.setTo(packet.getFrom());
+							p.setID(packet.getID());
+							p.setAttributeValue("type", "result");
+						} else {
+							// XMPP Ping Not Supported
+							p.setFrom(packet.getTo());
+							p.setTo(packet.getFrom());
+							p.setID(packet.getID());
+							p.setAttributeValue("type", "result");
+								StreamElement query = conn.getDataFactory().createElementNode(new NSI("ping", "urn:xmpp:ping"));
+							p.add(query);
+								StreamElement error = conn.getDataFactory().createElementNode(new NSI("error", "cancel"));
+								error.addElement("service-unavailable").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
+							p.add(error);
+						}
+						
+						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+						sess.sendPacket(p);
+						
+					}
+				
 				else if ( packet.getAttributeValue("type").equals("error"))
 				 {
 					logger.debug("[[" + internalCallId + "]] Got error stanza");
@@ -849,7 +893,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						if (cs != null)
 						{
 							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
-							logger.debug("[[" + internalCallId + "]] found call session, forwarding bye");
+							logger.debug("[[" + internalCallId + "]] found call session, forwarding BYE");
 							SipService.sendBye(cs);
 							CallManager.removeSession(cs);
 						}
