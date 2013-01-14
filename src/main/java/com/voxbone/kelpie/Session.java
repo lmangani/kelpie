@@ -764,6 +764,41 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				 }
 
 				else if (   packet.getAttributeValue("type").equals("set")
+				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
+				{
+					logger.debug("[[" + internalCallId + "]] Got a Jabber Archive/Record status change, forwarding.... ");
+					
+					String otr = "";
+					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+					p.setFrom(packet.getTo());
+					p.setTo(packet.getFrom());
+					p.setID(packet.getID());
+					
+					MessageMessage mm = new MessageMessage(evt.getData());
+					
+					if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("true") )
+					{
+						logger.info("[[" + internalCallId + "]] chat session is OFF the records ");
+						otr = "Chat session is OFF RECORDS";
+					} 
+					else if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("false") )
+					{
+						logger.info("[[" + internalCallId + "]] chat session is RECORDED ");
+						otr = "Chat session is RECORDED";
+					}
+					
+                    mm.body = "["+otr+"]";
+                    String domain = host;
+
+					SipSubscription sub = SipSubscriptionManager.getWatcher(mm.from, mm.to);
+					if (sub != null)
+					{
+						domain = ((SipURI)sub.remoteParty.getURI()).getHost();
+					}
+					SipService.sendMessageMessage(mm, domain);
+				}
+				
+				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("session", "http://www.google.com/session")) != null)
 				{
 					if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("initiate"))
