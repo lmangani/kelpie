@@ -40,6 +40,7 @@ import org.jabberstudio.jso.JID;
 import org.jabberstudio.jso.JSOImplementation;
 import org.jabberstudio.jso.NSI;
 import org.jabberstudio.jso.Packet;
+import org.jabberstudio.jso.PacketError;
 import org.jabberstudio.jso.Stream;
 import org.jabberstudio.jso.StreamContext;
 import org.jabberstudio.jso.StreamElement;
@@ -86,6 +87,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featPMUC = true;
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
+	private static boolean featJingleDtmf = false;
+
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
 
@@ -164,6 +167,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
 		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
 		featPING = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.xmpp-ping", "false"));
+		featJingleDtmf = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.jingle-dtmf", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 
@@ -437,7 +441,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						sess.startCall(cs, evt.getData().getTo().getNode(), UriMappings.toSipId(evt.getData().getFrom()));
 					}
 					
-					else if (msg.startsWith("/dial:")  || msg.toLowerCase().startsWith("/dial:") )
+					else if ( msg.toLowerCase().startsWith("/dtmf:") || msg.toLowerCase().startsWith("/dial:") )
 					{
 						logger.debug("[[" + internalCallId + "]] DIAL command detected");
 						CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
@@ -456,22 +460,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 						}
 					}
-					
-					else if (msg.startsWith("/dtmf:"))
-					{
-						logger.debug("[[" + internalCallId + "]] DTMF command detected");
-						CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
-						if (cs != null)
-						{
-							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
-							logger.debug("[[" + internalCallId + "]] Call found, sending SIP-INFO DTMF");
-							for (int i = "/dtmf:".length(); i < msg.length(); i++)
-							{
-								SipService.sendDTMFinfo(cs, msg.charAt(i), dtmfDuration);
-
-							}
-						}
-					} 
 					
 					else if (msg.equals("/echo") || msg.startsWith("/echo"))
                     {
@@ -700,6 +688,11 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							// xep-0199
 							query.addElement("feature").setAttributeValue("var", "urn:xmpp:ping");
 						}
+						if (featJingleDtmf) {
+							// xep-0199
+							query.addElement("feature").setAttributeValue("var", "urn:xmpp:jingle:dtmf:0");
+						}
+						
 
 					p.add(query);
 					
@@ -712,30 +705,15 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					{
 					
 					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
-					
+					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+
 						if (featPING) {
 							// Result Pong
-							logger.debug("[[" + internalCallId + "]] Replying to XMPP PING request");
-							p.setFrom(packet.getTo());
-							p.setTo(packet.getFrom());
-							p.setID(packet.getID());
-							p.setAttributeValue("type", "result");
+							sess.ackIQ(packet);
 						} else {
 							// XMPP Ping Not Supported
-							logger.debug("[[" + internalCallId + "]] Rejecting XMPP PING request");
-							p.setFrom(packet.getTo());
-							p.setTo(packet.getFrom());
-							p.setID(packet.getID());
-							p.setAttributeValue("type", "result");
-								StreamElement query = conn.getDataFactory().createElementNode(new NSI("ping", "urn:xmpp:ping"));
-							p.add(query);
-								StreamElement error = conn.getDataFactory().createElementNode(new NSI("error", "cancel"));
-								error.addElement("service-unavailable").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
-							p.add(error);
+							sess.cancelIQ(packet);
 						}
-						
-						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
-						sess.sendPacket(p);
 						
 					}
 				
@@ -763,6 +741,40 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 				 }
 
+				else if (   packet.getAttributeValue("type").equals("set")
+				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getAttributeValue("action").equals("session-info") )
+				{
+					
+					StreamElement src = packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getFirstElement(new NSI("dtmf", "urn:xmpp:jingle:dtmf:0"));
+
+					char code =  ( src.getAttributeValue("code") ).charAt(0);
+					int duration =  Integer.parseInt( src.getAttributeValue("duration") );
+					int volume =  Integer.parseInt( src.getAttributeValue("volume") );
+					
+					logger.debug("[[" + internalCallId + "]] Got a Jingle DTMF message [code: "+code+" dur: "+duration+" vol: "+volume);
+					
+					CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
+					if (cs != null)
+					{
+						logger.debug("[[" + internalCallId + "]] SIP Session found, sending DTMF : [[" + cs.internalCallId + "]]");		
+						
+						if (useDtmfInfo) {
+								SipService.sendDTMFinfo(cs, code, dtmfDuration);
+						} else {
+								cs.relay.sendSipDTMF(code);
+						}
+							
+							Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+							sess.ackIQ(packet);
+						
+					} else {
+						
+							logger.debug("[[" + internalCallId + "]] Reject Jingle DTMF message");
+							Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+							sess.cancelIQ(packet);
+					}
+					
+				}
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
 				{
@@ -1024,6 +1036,21 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		sendPacket(p);
 	}
 
+	private void cancelIQ(Packet packet) throws StreamException
+	{
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+		
+		p.setFrom(packet.getTo());
+		p.setTo(packet.getFrom());
+		p.setID(packet.getID());
+		p.setAttributeValue("type", "error");
+			StreamElement error = conn.getDataFactory().createElementNode(new NSI("error", "cancel"));
+			error.addElement("service-unavailable").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
+		p.add(error);
+		sendPacket(p);
+	}
+	
+	
 	public void acceptTransport(Packet origPacket) throws StreamException
 	{
 		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
