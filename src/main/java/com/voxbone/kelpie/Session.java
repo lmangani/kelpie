@@ -704,7 +704,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					    && packet.getFirstElement().getNSI().equals(new NSI("ping", "urn:xmpp:ping")))
 					{
 					
-					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
 					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 
 						if (featPING) {
@@ -742,7 +741,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				 }
 
 				else if (   packet.getAttributeValue("type").equals("set")
-				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getAttributeValue("action").equals("session-info") )
+				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getAttributeValue("action").equals("session-info") 
+				         && featJingleDtmf )
 				{
 					
 					StreamElement src = packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getFirstElement(new NSI("dtmf", "urn:xmpp:jingle:dtmf:0"));
