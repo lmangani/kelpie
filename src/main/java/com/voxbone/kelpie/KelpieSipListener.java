@@ -72,13 +72,15 @@ public class KelpieSipListener implements SipListener
 	
 	private static boolean optionsmode = false;
 	private static boolean subscribeRport = false;
+	private static boolean subscribeEmu = false;
+
 
 	
 	public static void configure(Properties properties)
 	{
 		optionsmode = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.options.probe", "false"));
 		subscribeRport = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.subscribe.rport", "false"));
-
+		subscribeEmu = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.subscribe.force-emu", "false"));
 
 	}
 	
@@ -651,6 +653,12 @@ public class KelpieSipListener implements SipListener
 		{
 			if (method.equals(Request.SUBSCRIBE))
 			{
+				if (subscribeEmu) {
+					
+					// force emulation regardless of reply
+					status = 500;
+				}
+				
 				if (status >= 200 && status < 300)
 				{
 					logger.info("[[SIP]] 200 OK to SUBSCRIBE, updating route info");
