@@ -249,8 +249,8 @@ public class CallSession
 					int id = Integer.parseInt(pt.getAttributeValue("id"));
 					String name = pt.getAttributeValue("name");
 	
-					int width = Integer.parseInt(pt.getAttributeValue("width"));
-					int height = Integer.parseInt(pt.getAttributeValue("height"));
+					// int width = Integer.parseInt(pt.getAttributeValue("width"));
+					// int height = Integer.parseInt(pt.getAttributeValue("height"));
 					//int framerate = Integer.parseInt(pt.getAttributeValue("framerate"));
 					
 					Payload p = getByName(name);
