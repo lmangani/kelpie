@@ -743,6 +743,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 				 }
 
+				/*
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getAttributeValue("action").equals("session-info") 
 				         && featJingleDtmf )
@@ -778,6 +779,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					}
 					
 				}
+				*/
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
 				{
