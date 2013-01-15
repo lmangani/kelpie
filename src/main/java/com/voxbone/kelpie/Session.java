@@ -40,7 +40,6 @@ import org.jabberstudio.jso.JID;
 import org.jabberstudio.jso.JSOImplementation;
 import org.jabberstudio.jso.NSI;
 import org.jabberstudio.jso.Packet;
-import org.jabberstudio.jso.PacketError;
 import org.jabberstudio.jso.Stream;
 import org.jabberstudio.jso.StreamContext;
 import org.jabberstudio.jso.StreamElement;
@@ -82,7 +81,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientPriority;
 
 	private static String fakeId = null;
-	// private static boolean mapJID = false;
 	private static boolean featVID = true;
 	private static boolean featPMUC = true;
 	private static boolean featSMS = false;
@@ -98,9 +96,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 	static Logger logger = Logger.getLogger(Session.class);
 
-
 	public String internalCallId;
-
 
 	private static String convertToHex(byte [] data) 
 	{
@@ -162,7 +158,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		clientVersion = "0.2.3";
 		clientPriority = properties.getProperty("com.voxbone.kelpie.feature.priority", "24");
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
-		// mapJID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.map.strict", "false"));
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
 		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
@@ -735,41 +730,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 								}
 							}
 				 }
-
-				else if (   packet.getAttributeValue("type").equals("set")
-				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
-				{
-					logger.debug("[[" + internalCallId + "]] Got a Jabber Archive/Record status change, forwarding.... ");
-					
-					String otr = "";
-					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
-					p.setFrom(packet.getTo());
-					p.setTo(packet.getFrom());
-					p.setID(packet.getID());
-					
-					MessageMessage mm = new MessageMessage(evt.getData());
-					
-					if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("true") )
-					{
-						logger.info("[[" + internalCallId + "]] chat session is OFF the records ");
-						otr = "Chat session is OFF RECORDS";
-					} 
-					else if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("false") )
-					{
-						logger.info("[[" + internalCallId + "]] chat session is RECORDED ");
-						otr = "Chat session is RECORDED";
-					}
-					
-                    mm.body = "["+otr+"]";
-                    String domain = host;
-
-					SipSubscription sub = SipSubscriptionManager.getWatcher(mm.from, mm.to);
-					if (sub != null)
-					{
-						domain = ((SipURI)sub.remoteParty.getURI()).getHost();
-					}
-					SipService.sendMessageMessage(mm, domain);
-				}
 				
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("session", "http://www.google.com/session")) != null)
@@ -797,6 +757,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 						SipService.sendInvite(cs, domain);
 					}
+					
 					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("transport-info"))
 					{
 						logger.debug("[[" + internalCallId + "]] Got transport info");
@@ -941,6 +902,42 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 
 					}
 				}
+				
+				else if (   packet.getAttributeValue("type").equals("set")
+				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
+				{
+					logger.debug("[[" + internalCallId + "]] Got a Jabber Archive/Record status change, forwarding.... ");
+					
+					String otr = "";
+					Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+					p.setFrom(packet.getTo());
+					p.setTo(packet.getFrom());
+					p.setID(packet.getID());
+					
+					MessageMessage mm = new MessageMessage(evt.getData());
+					
+					if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("true") )
+					{
+						logger.info("[[" + internalCallId + "]] chat session is OFF the records ");
+						otr = "Chat session is OFF RECORDS";
+					} 
+					else if (packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")).getFirstElement("record").getAttributeValue("otr").equals("false") )
+					{
+						logger.info("[[" + internalCallId + "]] chat session is RECORDED ");
+						otr = "Chat session is RECORDED";
+					}
+					
+                   mm.body = "["+otr+"]";
+                   String domain = host;
+
+					SipSubscription sub = SipSubscriptionManager.getWatcher(mm.from, mm.to);
+					if (sub != null)
+					{
+						domain = ((SipURI)sub.remoteParty.getURI()).getHost();
+					}
+					SipService.sendMessageMessage(mm, domain);
+				}
+				
 				else if (   packet.getAttributeValue("type").equals("get")
 				         && packet.getFirstElement().getNSI().equals(new NSI("vCard", "vcard-temp")))
 				{
