@@ -88,7 +88,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
 	private static boolean featNICK = false;
-	private static boolean featJingleDtmf = false;
 
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
@@ -168,7 +167,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
 		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
 		featPING = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.xmpp-ping", "false"));
-		featJingleDtmf = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.jingle-dtmf", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 		featNICK = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.chat-nickname", "false"));
@@ -691,11 +689,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							// xep-0199
 							query.addElement("feature").setAttributeValue("var", "urn:xmpp:ping");
 						}
-						if (featJingleDtmf) {
-							// xep-0199
-							query.addElement("feature").setAttributeValue("var", "urn:xmpp:jingle:dtmf:0");
-						}
-						
 
 					p.add(query);
 					
@@ -743,43 +736,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							}
 				 }
 
-				/*
-				else if (   packet.getAttributeValue("type").equals("set")
-				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getAttributeValue("action").equals("session-info") 
-				         && featJingleDtmf )
-				{
-					
-					StreamElement src = packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:0")).getFirstElement(new NSI("dtmf", "urn:xmpp:jingle:dtmf:0"));
-
-					char code =  ( src.getAttributeValue("code") ).charAt(0);
-					int duration =  Integer.parseInt( src.getAttributeValue("duration") );
-					int volume =  Integer.parseInt( src.getAttributeValue("volume") );
-					
-					logger.debug("[[" + internalCallId + "]] Got a Jingle DTMF message [code: "+code+" dur: "+duration+" vol: "+volume);
-					
-					CallSession cs = CallManager.getSession(evt.getData().getFrom(), evt.getData().getTo());
-					if (cs != null)
-					{
-						logger.debug("[[" + internalCallId + "]] SIP Session found, sending DTMF : [[" + cs.internalCallId + "]]");		
-						
-						if (useDtmfInfo) {
-								SipService.sendDTMFinfo(cs, code, dtmfDuration);
-						} else {
-								cs.relay.sendSipDTMF(code);
-						}
-							
-							Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
-							sess.ackIQ(packet);
-						
-					} else {
-						
-							logger.debug("[[" + internalCallId + "]] Reject Jingle DTMF message");
-							Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
-							sess.cancelIQ(packet);
-					}
-					
-				}
-				*/
 				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("otr", "http://jabber.org/protocol/archive")) != null)
 				{
