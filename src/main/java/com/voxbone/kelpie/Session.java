@@ -87,6 +87,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featPMUC = true;
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
+	private static boolean featNICK = false;
 	private static boolean featJingleDtmf = false;
 
 	private static boolean useDtmfInfo = false;
@@ -170,6 +171,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		featJingleDtmf = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.jingle-dtmf", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
+		featNICK = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.chat-nickname", "false"));
+
 
 	}
 	
@@ -1079,6 +1082,13 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		p.setAttributeValue("type", type);
 		
+		if (featNICK) {
+			String nick = from.toString().split("@")[0];
+				if (nick.contains("+")) { nick = nick.split("+")[0]; }
+			p.addElement(new NSI("nick", "http://jabber.org/protocol/nick"));
+			p.getFirstElement("nick").addText(nick);
+		}
+		
 		try
 		{
 			sendPacket(p);
@@ -1568,6 +1578,13 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.getFirstElement("body").addText(mm.body);
 		
 		p.setAttributeValue("type", "chat");
+		
+		if (featNICK) {
+			String nick = from.toString().split("@")[0];
+				if (nick.contains("+")) { nick = nick.split("+")[0]; }
+			p.addElement(new NSI("nick", "http://jabber.org/protocol/nick"));
+			p.getFirstElement("nick").addText(nick);
+		}
 		
 		if (mm.subject != null)
 		{
