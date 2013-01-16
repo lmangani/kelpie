@@ -536,11 +536,12 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						{
 							logger.debug("[[" + internalCallId + "]] Video support detected, not taking note");
 						}
-						*/
+						
 						if (caps.getAttributeValue("ext").contains("vainvite-v1"))
 						{
 							logger.debug("[[" + internalCallId + "]] 'vainvite' undocumented feature. Ignored for now. [" + evt.getData().getFrom() + "]" );
 						}
+						*/
 					}
 					Presence pres = new Presence(evt.getData());
 					String from = UriMappings.toSipId(evt.getData().getFrom());
@@ -548,7 +549,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 					SipSubscription sub = SipSubscriptionManager.getWatcher(from, to);
 					if (sub != null)
 					{
-						logger.debug("[[" + internalCallId + "]] Found matching subscription!");
+						logger.debug("[[" + internalCallId + "]] Found matching subscription! Sending NOTIFY");
 						sub.sendNotify(false, pres);
 					}
 				}
