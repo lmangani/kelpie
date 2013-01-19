@@ -149,7 +149,6 @@ public class GatewayServer
 		UriMappings.configure(properties);
 		RtpRelay.configure(properties);
 		KelpieSipListener.configure(properties);
-		
 
 		host = properties.getProperty("com.voxbone.kelpie.hostname");
 		port = "5269";

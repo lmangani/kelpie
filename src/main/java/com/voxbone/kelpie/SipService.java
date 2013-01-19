@@ -48,6 +48,7 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.header.MaxForwardsHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.ViaHeader;
+import javax.sip.header.UserAgentHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -73,6 +74,8 @@ public class SipService
 	private static String localip;
 	private static String remoteip;
 	private static String remoteim;
+	private static String agentName;
+
 
 
 
@@ -84,6 +87,7 @@ public class SipService
 		remoteim = properties.getProperty("com.voxbone.kelpie.im_gateway", remoteip);
 		
 		sipListener = new KelpieSipListener(properties.getProperty("com.voxbone.kelpie.hostname"));
+		agentName = properties.getProperty("com.voxbone.kelpie.sip.user-agent", "Kelpie/QXIP");
 
 		sipFactory = SipFactory.getInstance();
 		sipFactory.setPathName("gov.nist");
@@ -159,6 +163,9 @@ public class SipService
 			
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
 			resp.addHeader(ch);
+			
+			UserAgentHeader userAgent = (UserAgentHeader) headerFactory.createHeader(UserAgentHeader.NAME, agentName);
+			resp.setHeader(userAgent);
 			
 			resp.setContent(sdp, cth);
 			cs.inviteTransaction.sendResponse(resp);
@@ -309,7 +316,7 @@ public class SipService
 			toHeader = headerFactory.createToHeader(addressFactory.createAddress(requestURI), null);
 			fromURI = addressFactory.createURI("sip:" + UriMappings.toSipId(cs.jabberRemote) + "@" + domain);
 			fromHeader = headerFactory.createFromHeader(addressFactory.createAddress(fromURI), null);
-
+			
 			int tag = (int) (Math.random() * 100000);
 			fromHeader.setTag(Integer.toString(tag));
 
@@ -332,6 +339,9 @@ public class SipService
 			
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
 			request.addHeader(ch);
+			
+			UserAgentHeader userAgent = (UserAgentHeader) headerFactory.createHeader(UserAgentHeader.NAME, agentName);
+			request.setHeader(userAgent);
 
 			ClientTransaction t = sipProvider.getNewClientTransaction(request);
 			
