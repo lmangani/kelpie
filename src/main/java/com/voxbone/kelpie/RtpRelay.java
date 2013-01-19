@@ -70,6 +70,10 @@ public class RtpRelay extends Thread
 	private static boolean FIR_ENABLE = false;
 	private static boolean RTP_DEBUG = false;
 	
+	private static boolean VUP_ENABLE = false;
+	private static int VUP_TIMER = 5000;
+
+	
 	Timer retransTimer = new Timer("Stun Retransmit Thread");
 	
 	private class StunTransmitter extends TimerTask
@@ -718,7 +722,7 @@ public class RtpRelay extends Thread
 										destSocket.send(inputBuffer, destAddr);
 									}
 
-									if (video && System.currentTimeMillis() - lastVUpate > 5000)
+									if (video && VUP_ENABLE && System.currentTimeMillis() - lastVUpate > VUP_TIMER)
 									{
 										SipService.sendVideoUpdate(this.cs);
 										lastVUpate = System.currentTimeMillis();
@@ -892,6 +896,9 @@ public class RtpRelay extends Thread
 		NAT_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.nat_enable", "false"));
 		FIR_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.fir_enable", "false"));
 		RTP_DEBUG = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.debug", "false"));
+		VUP_ENABLE = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.rtp.vup_enable", "true"));
+		VUP_TIMER = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.rtp.vup_timer", "5000"));
+
 
 
 		nextPort = RTP_MIN_PORT;		
