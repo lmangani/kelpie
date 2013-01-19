@@ -35,6 +35,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.Properties;
 
+import javax.sip.DialogState;
+
 import org.apache.log4j.Logger;
 import org.jabberstudio.jso.Packet;
 
@@ -722,7 +724,8 @@ public class RtpRelay extends Thread
 										destSocket.send(inputBuffer, destAddr);
 									}
 
-									if (video && VUP_ENABLE && System.currentTimeMillis() - lastVUpate > VUP_TIMER)
+									if (video && VUP_ENABLE && System.currentTimeMillis() - lastVUpate > VUP_TIMER 
+											&& (this.cs.sipDialog.getState() != null && this.cs.sipDialog.getState() != DialogState.EARLY) )
 									{
 										SipService.sendVideoUpdate(this.cs);
 										lastVUpate = System.currentTimeMillis();
