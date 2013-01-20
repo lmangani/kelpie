@@ -83,6 +83,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String fakeId = null;
 	private static boolean featVID = true;
 	private static boolean featPMUC = true;
+	private static boolean featPMUC_UNI = false;
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
 	private static boolean featNICK = false;
@@ -160,6 +161,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
+		featPMUC_UNI = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc.unique", "false"));
 		featSMS = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.sms", "false"));
 		featPING = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.xmpp-ping", "false"));
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
@@ -685,15 +687,38 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							// xep-0199
 							query.addElement("feature").setAttributeValue("var", "urn:xmpp:ping");
 						}
+						
+						if (featPMUC && featPMUC_UNI) {
+							// xep-0199
+							query.addElement("feature").setAttributeValue("var", "http://jabber.org/protocol/muc#unique");
+						}
 
 					p.add(query);
 					
 					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 					sess.sendPacket(p);
 				}
+				
+				// XEP-0307 (used in G+ hangouts)
+				else if (   packet.getAttributeValue("type").equals("get")
+					    && packet.getFirstElement().getNSI().equals(new NSI("unique", "http://jabber.org/protocol/muc#unique")))
+					{
+					
+					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+
+						if (featPMUC && featPMUC_UNI) {
+							// Result with UUID
+							sess.unIQ(packet);
+						} else {
+							// Status Unavailable - not required by XEP specification
+							// sess.errorIQ(packet, "unavailable");
+						}
+						
+					}
+				
 				// XEP-0199
 				else if (   packet.getAttributeValue("type").equals("get")
-					    && packet.getFirstElement().getNSI().equals(new NSI("ping", "urn:xmpp:ping")))
+						&& packet.getFirstElement().getNSI().equals(new NSI("ping", "urn:xmpp:ping")))
 					{
 					
 					Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
@@ -1009,6 +1034,54 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		sendPacket(p);
 	}
 	
+	// XEP-0307 Unique MUC 
+	private void unIQ(Packet packet) throws StreamException
+	{
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+
+		p.setFrom(packet.getTo());
+		p.setTo(packet.getFrom());
+		p.setID(packet.getID());
+		p.setAttributeValue("type", "result");
+		p.addElement("unique").setAttributeValue("xmlns", "http://jabber.org/protocol/muc#unique");
+		p.getFirstElement("unique").setAttributeValue("hangout-id", "Kelpie-hangout");
+		String uniq = UUID.randomUUID().toString();
+		p.getFirstElement("unique").addText(uniq);
+		sendPacket(p);
+	}
+	
+	// error helper
+	private void errorIQ(Packet packet, String...type) throws StreamException
+	{
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+		
+		p.setFrom(packet.getTo());
+		p.setTo(packet.getFrom());
+		p.setID(packet.getID());
+		p.setAttributeValue("type", "error");
+			StreamElement error = conn.getDataFactory().createElementNode(new NSI("error", "cancel"));
+			if (type != null) {
+				for (int i = 0; i < type.length; i++) {
+						if (type[i] == "limit" )
+						{
+							error.addElement("resource-constraint").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
+							error.addElement("resource-limit-exceeded").setAttributeValue("xmlns", "urn:xmpperrors");
+						}
+						else if (type[i] == "unavailable" )
+						{
+							error.addElement("service-unavailable").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
+						}
+						else if (type[i] == "forbidden") 
+						{
+							p.getFirstElement("error").setAttributeValue("type", "auth");
+							error.addElement("forbidden").setAttributeValue("xmlns", "urn:ietf:params:xml:ns:xmpp-stanzas");
+						}
+					}
+				}
+			
+		p.add(error);
+		sendPacket(p);
+	}
 	
 	public void acceptTransport(Packet origPacket) throws StreamException
 	{
@@ -1561,6 +1634,39 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		catch (StreamException e)
 		{
 			logger.error("[[" + internalCallId + "]] Error sending IM", e);
+			return false;
+		}
+		return true;
+	}
+	
+	// XEP-0224
+	public boolean sendMessageHeadline(MessageMessage mm)
+	{
+		JID from = new JID(mm.from + "@" + host);
+		JID to = UriMappings.toJID(mm.to);
+		
+		if (to == null)
+		{
+			logger.error("[[" + internalCallId + "]] No mapping for destination : " + mm.to);
+			return false;
+		}
+		
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("message", Utilities.SERVER_NAMESPACE), Packet.class);
+		p.setFrom(from);
+		p.setTo(to);
+		p.setAttributeValue("type", "headline");
+
+		p.addElement(new NSI("attention", "urn:xmpp:attention:0"));
+		p.addElement("body");
+		p.getFirstElement("body").addText(mm.body);
+		
+		try
+		{
+			sendPacket(p);
+		} 
+		catch (StreamException e)
+		{
+			logger.error("[[" + internalCallId + "]] Error sending HEADLINE", e);
 			return false;
 		}
 		return true;
