@@ -1111,7 +1111,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		p.setAttributeValue("type", type);
 		
-		if (featNICK) {
+		if (featNICK && type == "subscribe") {
 			String nick = from.toString().split("@")[0];
 				if (nick.contains("+")) { nick = nick.split("+")[0]; }
 			p.addElement(new NSI("nick", "http://jabber.org/protocol/nick"));
