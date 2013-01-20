@@ -156,7 +156,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	public static void configure(Properties properties)
 	{
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
-		clientVersion = "0.2.3";
+		clientVersion = properties.getProperty("com.voxbone.kelpie.version", "git");
 		clientPriority = properties.getProperty("com.voxbone.kelpie.feature.priority", "24");
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
@@ -168,7 +168,11 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 		featNICK = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.chat-nickname", "false"));
 
-
+	}
+	
+	public static String getVersion()
+	{
+		return clientVersion;
 	}
 	
 	private long idNum = 0;

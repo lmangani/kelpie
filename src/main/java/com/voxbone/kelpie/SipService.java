@@ -75,9 +75,8 @@ public class SipService
 	private static String remoteip;
 	private static String remoteim;
 	private static String agentName;
-
-
-
+	private static String clientVersion;
+	
 
 	public SipService(Properties properties)
 	{
@@ -87,8 +86,13 @@ public class SipService
 		remoteim = properties.getProperty("com.voxbone.kelpie.im_gateway", remoteip);
 		
 		sipListener = new KelpieSipListener(properties.getProperty("com.voxbone.kelpie.hostname"));
+		
 		agentName = properties.getProperty("com.voxbone.kelpie.sip.user-agent", "Kelpie/QXIP");
-
+		clientVersion = properties.getProperty("com.voxbone.kelpie.version");		
+		String nameOS = System.getProperty("os.name");  
+		String versOS = System.getProperty("os.version"); 
+		agentName = agentName + " " + clientVersion + " (" + nameOS + "/" + versOS + ")";
+		
 		sipFactory = SipFactory.getInstance();
 		sipFactory.setPathName("gov.nist");
 		properties.setProperty("javax.sip.STACK_NAME", "KelpieStack");

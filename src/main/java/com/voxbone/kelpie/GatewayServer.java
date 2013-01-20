@@ -140,8 +140,11 @@ public class GatewayServer
 		GatewayServer server;
 		String host = null;
 		String port = null;
+		
+		String clientVersion = "0.2.4";
 	   
 		Properties properties = ConfigurationUtil.getPropertiesResource("server");
+		properties.setProperty("com.voxbone.kelpie.version", clientVersion);
 		
 		Presence.configure(properties);
 		Session.configure(properties);
