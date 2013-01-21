@@ -433,6 +433,13 @@ public class CallSession
 			for (MediaDescription md : mdesc)
 			{			
 				javax.sdp.Media media = md.getMedia();
+				
+				if (media.getMediaType().equals("video") && media.getMediaPort() == 0 && vRelay != null )
+				{
+					logger.debug("[[" + internalCallId + "]] Video mapping conflict!! (SDP VIDEO PORT = 0)");
+					// Issue: An video capable XMPP contact video calling a non-video capable SIP endpoint
+					// Options: remote error (current), proper terminate session, or update candidates for XMPP side
+				}
 
 				if (media.getMediaType().equals("video") && media.getMediaPort() != 0 )
 				{
