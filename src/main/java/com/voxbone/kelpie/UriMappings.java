@@ -121,20 +121,21 @@ public class UriMappings
 				}
 					int count = 0;
 					while (count < 5 && m.voiceResource == null) 
-					    try {
-						log.debug("NULL resource for " + jid);
-						count++;
-						Thread.sleep(500);
+					  try {
+					    	log.debug("NULL resource for " + jid + " - sending probe...");
+							sess.sendSubscribeRequest(new JID(fakeId + "@" + host), m.jid, "probe");
+							count++;
+							Thread.sleep(500);
                                         	} catch (Exception ex) { continue; }
 
-					if (m.voiceResource == null && mapJID) {
-						log.debug("Removing forwarder " + sip_id + " => " + jid );
-						mappings.remove(m);
-						SessionManager.removeSession(SessionManager.getSession(jid));
-						return null;
-					}
+						if (m.voiceResource == null && mapJID) {
+							log.debug("Removing forwarder " + sip_id + " => " + jid );
+							mappings.remove(m);
+							SessionManager.removeSession(SessionManager.getSession(jid));
+							return null;
+						}
 
-				}
+					  }
 			}
 
 		return jid;
