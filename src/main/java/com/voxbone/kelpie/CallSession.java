@@ -434,7 +434,7 @@ public class CallSession
 			{			
 				javax.sdp.Media media = md.getMedia();
 
-				if (media.getMediaType().equals("video"))
+				if (media.getMediaType().equals("video") && media.getMediaPort() != 0 )
 				{
 					logger.info("[[" + internalCallId + "]] Video sdp detected! starting video rtp stream...");
 					
