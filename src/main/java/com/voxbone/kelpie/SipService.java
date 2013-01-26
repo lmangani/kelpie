@@ -76,6 +76,7 @@ public class SipService
 	private static String remoteim;
 	private static String agentName;
 	private static String clientVersion;
+	private static Boolean clientJingle;
 	
 
 	public SipService(Properties properties)
@@ -84,11 +85,13 @@ public class SipService
 		localport = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.sip_port", "5060"));
 		remoteip = properties.getProperty("com.voxbone.kelpie.sip_gateway");
 		remoteim = properties.getProperty("com.voxbone.kelpie.im_gateway", remoteip);
+		clientJingle = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.jingle", "false"));
 		
 		sipListener = new KelpieSipListener(properties.getProperty("com.voxbone.kelpie.hostname"));
 		
 		agentName = properties.getProperty("com.voxbone.kelpie.sip.user-agent", "Kelpie/QXIP");
-		clientVersion = properties.getProperty("com.voxbone.kelpie.version");		
+		clientVersion = properties.getProperty("com.voxbone.kelpie.version");	
+		if (clientJingle) { clientVersion = clientVersion + "+Jingle"; }
 		String nameOS = System.getProperty("os.name");  
 		String versOS = System.getProperty("os.version"); 
 		agentName = agentName + " " + clientVersion + " (" + nameOS + "/" + versOS + ")";

@@ -141,7 +141,7 @@ public class GatewayServer
 		String host = null;
 		String port = null;
 		
-		String clientVersion = "0.2.4";
+		String clientVersion = "0.2.5";
 	   
 		Properties properties = ConfigurationUtil.getPropertiesResource("server");
 		properties.setProperty("com.voxbone.kelpie.version", clientVersion);
