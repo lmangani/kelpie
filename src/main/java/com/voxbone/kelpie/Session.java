@@ -87,6 +87,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
 	private static boolean featNICK = false;
+	
+	private static boolean clientJingle = false;
 
 	private static boolean useDtmfInfo = false;
 	private static int dtmfDuration;
@@ -167,6 +169,9 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 		featNICK = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.chat-nickname", "false"));
+		
+		clientJingle = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.jingle", "false"));
+
 
 	}
 	
@@ -289,7 +294,85 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		return running;
 	}
-	
+
+	private void handleInitate(Packet packet, boolean jingle) throws StreamException
+	{
+		logger.debug("[[" + internalCallId + "]] Got a request to start a call");
+		Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+		sess.ackIQ(packet);
+		
+		CallSession cs = new CallSession();
+		logger.debug("[[" + internalCallId + "]] created call session : [[" + cs.internalCallId + "]]");
+		cs.parseInitiate(packet, jingle);
+		
+		CallManager.addSession(cs);
+		
+		/* For coherence, we try to use the domain he has used in his subscription */
+		String domain = host;
+
+		SipSubscription sub = SipSubscriptionManager.getWatcher(UriMappings.toSipId(cs.jabberRemote), cs.jabberLocal.getNode());
+		
+		if (sub != null)
+		{
+			domain = ((SipURI) sub.remoteParty.getURI()).getHost();
+		}
+		SipService.sendInvite(cs, domain);
+	}
+	private void handleTransportList(Session sess, StreamElement session, CallSession cs)
+	{
+		for(Object objCandidate : session.listElements("candidate"))
+		{
+			StreamElement candidate = (StreamElement)objCandidate;
+
+			if (   candidate != null
+					&& candidate.getAttributeValue("protocol").equals("udp"))
+			{
+
+				if (cs != null)
+				{
+					logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
+
+					if (candidate.getAttributeValue("name").equals("video_rtp")/* || candidate.getAttributeValue("name").equals("video_rtcp")*/)
+					{
+						if (!cs.sentVTransport)
+						{
+							sess.sendTransportCandidates(cs, StreamType.VRTP);
+						}
+
+						cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
+					}
+					else if (candidate.getAttributeValue("name").equals("video_rtcp"))
+					{
+						if (!cs.sentVTransport)
+						{
+							sess.sendTransportCandidates(cs, StreamType.VRTCP);
+						}
+
+						cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
+					}
+					else if (candidate.getAttributeValue("name").equals("rtp")/* || candidate.getAttributeValue("name").equals("rtcp")*/)
+					{
+						if (!cs.sentTransport)
+						{
+							sess.sendTransportCandidates(cs, StreamType.RTP);
+						}
+
+						cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
+					}
+					else if (candidate.getAttributeValue("name").equals("rtcp"))
+					{
+						if (!cs.sentTransport)
+						{
+							sess.sendTransportCandidates(cs, StreamType.RTCP);										
+						}
+
+						cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
+					}
+				}
+			}
+		}
+
+	}
 	public void packetTransferred(PacketEvent evt)
 	{
 		try
@@ -410,7 +493,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				}
 
 			}
-			
 			else if (   evt.getData().getQualifiedName().equals(":message")
 			         && evt.getData().getAttributeValue("type") != null )
 			         //&& evt.getData().getAttributeValue("type").equals("chat"))
@@ -762,126 +844,104 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				 }
 				
 				else if (   packet.getAttributeValue("type").equals("set")
+				         && packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:1")) != null
+				         && clientJingle )
+				{
+					StreamElement session = packet.getFirstElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+					String action = session.getAttributeValue("action");
+
+					if(action.equals("session-initiate"))
+					{
+						handleInitate(packet, true);
+					}
+					else if(action.equals("transport-info"))
+					{
+						logger.debug("[[" + internalCallId + "]] Got candidate");
+						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+						sess.ackIQ(packet);
+						String sessionId = session.getAttributeValue("sid");
+						CallSession cs = CallManager.getSession(sessionId);
+						for(Object objContent : session.listElements("content"))
+						{
+							StreamElement content = (StreamElement)objContent;
+							StreamElement origTransport = content.getFirstElement("transport");
+							handleTransportList(sess, origTransport, cs);
+						}	
+						
+					}
+					else if(action.equals("session-accept"))
+					{
+						logger.debug("[[" + internalCallId + "]] Got session accept");
+						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+						sess.ackIQ(packet);						
+						String sessionId = session.getAttributeValue("sid");
+						CallSession cs = CallManager.getSession(sessionId);
+						if (cs != null)
+						{
+							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
+							logger.debug("[[" + internalCallId + "]] Call found sending 200 OK");
+							cs.parseAccept(packet, true);
+							SipService.acceptCall(cs);
+						}
+					}
+					else if(action.equals("session-terminate"))
+					{
+						logger.debug("[[" + internalCallId + "]] Got session terminate");
+						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+						sess.ackIQ(packet);						
+						String sessionId = session.getAttributeValue("sid");
+						CallSession cs = CallManager.getSession(sessionId);
+						if (cs != null)
+						{
+							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
+							
+							// logger.debug("[[" + internalCallId + "]] Call found sending CANCEL");
+							// SipService.sendReject(cs);
+							
+							logger.debug("[[" + internalCallId + "]] Call found sending BYE");
+							SipService.sendBye(cs);
+							
+							CallManager.removeSession(cs);
+						}
+					}
+					else 
+					{ 
+						logger.debug("[[" + internalCallId + "]] Unhandled action: "+ action ); 
+					}
+
+				}
+
+				// gingle  call
+				else if (   packet.getAttributeValue("type").equals("set")
 				         && packet.getFirstElement(new NSI("session", "http://www.google.com/session")) != null)
 				{
 					if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("initiate"))
 					{
-						logger.debug("[[" + internalCallId + "]] Got a request to start a call");
-						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
-						sess.ackIQ(packet);
-						
-						CallSession cs = new CallSession();
-						logger.debug("[[" + internalCallId + "]] created call session : [[" + cs.internalCallId + "]]");
-						cs.parseInitiate(packet);
-						
-						CallManager.addSession(cs);
-						
-						/* For coherence, we try to use the domain he has used in his subscription */
-						String domain = host;
-
-						SipSubscription sub = SipSubscriptionManager.getWatcher(UriMappings.toSipId(cs.jabberRemote), cs.jabberLocal.getNode());
-						
-						if (sub != null)
-						{
-							domain = ((SipURI) sub.remoteParty.getURI()).getHost();
-						}
-						SipService.sendInvite(cs, domain);
+						handleInitate(packet, false);
 					}
-					
 					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("transport-info"))
 					{
 						logger.debug("[[" + internalCallId + "]] Got transport info");
 						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 						sess.ackIQ(packet);
+						StreamElement session = packet.getFirstElement(new NSI("session", "http://www.google.com/session"));
+						String sessionId = session.getID();
+						CallSession cs = CallManager.getSession(sessionId);
 						
 						StreamElement origTransport = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getFirstElement("transport");
+						handleTransportList(sess, origTransport, cs);
 						
-						if (origTransport.getNamespaceURI().equals("http://www.google.com/transport/p2p"))
-						{
-							StreamElement candidate = origTransport.getFirstElement("candidate");
-							if (   candidate != null
-							    && candidate.getAttributeValue("protocol").equals("udp"))
-							{
-								String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
-								
-								CallSession cs = CallManager.getSession(sessionId);
-								
-								if (cs != null)
-								{
-									logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
-									if (!cs.sentTransport)
-									{
-										sess.sendTransportInfo(cs);
-										cs.sentTransport = true;
-									}
-									sess.acceptTransport(packet);
-									
-									cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
-								}
-							}
-						}
 					}
 					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("candidates"))
 					{
 						logger.debug("[[" + internalCallId + "]] Got candidate");
 						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
 						sess.ackIQ(packet);
-						/*StreamElement origTransport = */packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getFirstElement("transport");
+						
 						StreamElement session = packet.getFirstElement(new NSI("session", "http://www.google.com/session"));
-						for(Object objCandidate : session.listElements("candidate"))
-						{
-							StreamElement candidate = (StreamElement)objCandidate;
-
-							if (   candidate != null
-									&& candidate.getAttributeValue("protocol").equals("udp"))
-							{
-								String sessionId = session.getID();
-
-								CallSession cs = CallManager.getSession(sessionId);
-
-								if (cs != null)
-								{
-									logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
-
-									if (candidate.getAttributeValue("name").equals("video_rtp")/* || candidate.getAttributeValue("name").equals("video_rtcp")*/)
-									{
-										if (!cs.sentVTransport)
-										{
-											sess.sendTransportCandidates(cs, StreamType.VRTP);
-										}
-
-										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
-									}
-									else if (candidate.getAttributeValue("name").equals("video_rtcp"))
-									{
-										if (!cs.sentVTransport)
-										{
-											sess.sendTransportCandidates(cs, StreamType.VRTCP);
-										}
-
-										cs.vRelay.sendBind(candidate.getAttributeValue("username"), cs.candidateVUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
-									}
-									else if (candidate.getAttributeValue("name").equals("rtp")/* || candidate.getAttributeValue("name").equals("rtcp")*/)
-									{
-										if (!cs.sentTransport)
-										{
-											sess.sendTransportCandidates(cs, StreamType.RTP);
-										}
-
-										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), false);
-									}
-									else if (candidate.getAttributeValue("name").equals("rtcp"))
-									{
-										if (!cs.sentTransport)
-										{
-											sess.sendTransportCandidates(cs, StreamType.RTCP);										
-										}
-
-										cs.relay.sendBind(candidate.getAttributeValue("username"), cs.candidateUser, candidate.getAttributeValue("address"), Integer.parseInt(candidate.getAttributeValue("port")), true);
-									}
-								}
-							}
-						}
+						String sessionId = session.getID();
+						CallSession cs = CallManager.getSession(sessionId);
+						handleTransportList(sess, session,cs);
 					}
 					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("transport-accept"))
 					{
@@ -899,7 +959,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						{
 							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
 							logger.debug("[[" + internalCallId + "]] Call found sending 200 OK");
-							cs.parseAccept(packet);
+							cs.parseAccept(packet, false);
 							SipService.acceptCall(cs);
 						}
 					}
@@ -917,7 +977,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						}
 					}
 
-					else if ( packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("reject"))
+					else if (packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getAttributeValue("type").equals("reject"))
 					{
 						logger.debug("[[" + internalCallId + "]] Got a reject");
 						String sessionId = packet.getFirstElement(new NSI("session", "http://www.google.com/session")).getID();
@@ -1108,6 +1168,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		sendPacket(p);
 	}
 	
+	
 	public boolean sendSubscribeRequest(JID from, JID to, String type)
 	{
 		Packet p = conn.getDataFactory().createPacketNode(new NSI("presence", Utilities.SERVER_NAMESPACE), Packet.class);
@@ -1152,6 +1213,26 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setID(Long.toString(++this.idNum));
 		p.setAttributeValue("type", "set");
 		
+		// Jingle Init
+		StreamElement jin = null;
+		StreamElement jin_transport = null;
+		StreamElement content = null;
+		
+		if (clientJingle) {
+			jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+			
+			jin.setAttributeValue("action", "session-initiate");
+			jin.setAttributeValue("initiator", callSession.jabberInitiator);
+			jin.setAttributeValue("sid", callSession.jabberSessionId);
+			
+			content = jin.addElement("content");
+			content.setAttributeValue("name", "audio");
+			content.setAttributeValue("creator", "initiator");
+			
+			jin_transport = content.addElement(new NSI("transport", "urn:xmpp:jingle:apps:rtp:1"));
+		}
+		
+		// Gingle Init
 		StreamElement session = p.addElement(new NSI("session", "http://www.google.com/session"));
 		
 		session.setAttributeValue("type", "initiate");
@@ -1160,34 +1241,86 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		session.setAttributeValue("initiator", callSession.jabberInitiator);
 		
 		StreamElement description = null;
+		StreamElement jin_description = null;
+		
 		if (callSession.vRelay != null)
 		{
+			// Gingle
 			description = session.addElement(new NSI("description", "http://www.google.com/session/video"));
+
+			// Jingle
+			if (clientJingle) {
+				StreamElement content_vid = jin.addElement("content");
+				content_vid.setAttributeValue("name", "video");
+				content_vid.setAttributeValue("creator", "initiator");
+				
+				jin_description = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_description.setAttributeValue("media", "video");
+				jin_transport = content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+			}
 			
 			for (CallSession.VPayload payload : callSession.offerVPayloads)
 			{
+				// Gingle Video
 				StreamElement payload_type = description.addElement("payload-type");
-				
 				payload_type.setAttributeValue("id", Integer.toString(payload.id));
 				payload_type.setAttributeValue("name", payload.name);
 				payload_type.setAttributeValue("width", Integer.toString(payload.width));
 				payload_type.setAttributeValue("height", Integer.toString(payload.height));
 				payload_type.setAttributeValue("framerate", Integer.toString(payload.framerate));
+				
+				// Jingle Video
+				if (clientJingle) {
+					StreamElement jin_payload_type = jin_transport.addElement("payload-type");
+					
+					jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
+					jin_payload_type.setAttributeValue("name", payload.name);
+					
+					StreamElement jin_payload_video = jin_payload_type.addElement("parameter");
+					
+					jin_payload_video.setAttributeValue("width", Integer.toString(payload.width));
+					jin_payload_video.setAttributeValue("height", Integer.toString(payload.height));
+					jin_payload_video.setAttributeValue("framerate", Integer.toString(payload.framerate));
+				}
+				
 			}
 		}
 		else
 		{
+			// Gingle
 			description = session.addElement(new NSI("description", "http://www.google.com/session/phone"));
+			
+			// Jingle
+			if (clientJingle) {
+				jin_description = content.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_description.setAttributeValue("media", "audio");
+			}
 		}
 		
 		for (CallSession.Payload payload : callSession.offerPayloads)
 		{
+			// Gingle Audio
 			StreamElement payload_type = description.addElement("payload-type", "http://www.google.com/session/phone");
 			
 			payload_type.setAttributeValue("id", Integer.toString(payload.id));
 			payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate));
 			payload_type.setAttributeValue("bitrate", Integer.toString(payload.bitRate));
 			payload_type.setAttributeValue("name", payload.name);
+			
+			// Jingle Audio
+			if (clientJingle) {
+				StreamElement jin_payload_type = jin_description.addElement("payload-type");
+				
+				jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
+				jin_payload_type.setAttributeValue("name", payload.name);
+				jin_payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate)); 
+					if ( Integer.toString(payload.clockRate) != null ) {
+						StreamElement jin_payload_bitrate = jin_payload_type.addElement("parameter");
+						jin_payload_bitrate.setAttributeValue("name", "bitrate");
+						jin_payload_bitrate.setAttributeValue("value", Integer.toString(payload.bitRate));
+					}
+			}
+			
 		}
 		
 		/*StreamElement transport = */session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
@@ -1238,6 +1371,34 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		callSession.candidateUser = String.format("%02x%02x%02x%02x", bytes[0], bytes[1], bytes[2], bytes[3]);
 
+		// Jingle Candidate Info
+		if (clientJingle) {
+			StreamElement jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+			jin.setAttributeValue("action", "transport-info");
+			jin.setAttributeValue("initiator", callSession.jabberInitiator);
+			jin.setAttributeValue("sid", callSession.jabberSessionId);	
+			
+			StreamElement content = jin.addElement("content");
+			content.setAttributeValue("name", "audio");
+			content.setAttributeValue("creator", "initiator");
+			
+			StreamElement jin_transport = content.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+			
+			StreamElement jin_candidate = jin_transport.addElement("candidate");
+			jin_candidate.setAttributeValue("name", "rtp");
+			jin_candidate.setAttributeValue("address", SipService.getLocalIP());
+			jin_candidate.setAttributeValue("port", Integer.toString(callSession.relay.getJabberPort()));
+			jin_candidate.setAttributeValue("preference", "1");
+			jin_candidate.setAttributeValue("username", callSession.candidateUser);
+			jin_candidate.setAttributeValue("password", callSession.candidateUser);
+			jin_candidate.setAttributeValue("protocol", "udp");
+			
+			jin_candidate.setAttributeValue("generation", "0");
+			jin_candidate.setAttributeValue("type", "local");
+			jin_candidate.setAttributeValue("network", "0");
+		}
+				
+		// Gingle Candidate Info
 		session = p.addElement(new NSI("session", "http://www.google.com/session"));
 		session.setAttributeValue("type", "transport-info");
 		session.setID(callSession.jabberSessionId);
@@ -1293,6 +1454,44 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			p.setID(Long.toString(++this.idNum));
 			p.setAttributeValue("type", "set");
 
+			// Jingle Candidate Transport
+			if (clientJingle) {
+				StreamElement jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+				jin.setAttributeValue("action", "transport-info");
+				jin.setAttributeValue("initiator", callSession.jabberInitiator);
+				jin.setAttributeValue("sid", callSession.jabberSessionId);	
+				
+				StreamElement content = jin.addElement("content");
+				content.setAttributeValue("name", "audio");
+				content.setAttributeValue("creator", "initiator");
+				
+				StreamElement jin_transport = content.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+	
+				StreamElement jin_candidate = jin_transport.addElement("candidate");
+				
+				if (type == StreamType.RTP)
+				{
+					jin_candidate.setAttributeValue("name", "rtp");
+					jin_candidate.setAttributeValue("address", SipService.getLocalIP());
+					jin_candidate.setAttributeValue("port", Integer.toString(callSession.relay.getJabberPort()));
+				}
+				else
+				{
+					jin_candidate.setAttributeValue("name", "rtcp");
+					jin_candidate.setAttributeValue("address", SipService.getLocalIP());
+					jin_candidate.setAttributeValue("port", Integer.toString(callSession.relay.getJabberRtcpPort()));
+				}
+				jin_candidate.setAttributeValue("preference", "1");
+				jin_candidate.setAttributeValue("username", callSession.candidateUser);
+				jin_candidate.setAttributeValue("password", callSession.candidateUser);
+				jin_candidate.setAttributeValue("protocol", "udp");
+	
+				jin_candidate.setAttributeValue("generation", "0");
+				jin_candidate.setAttributeValue("type", "local");
+				jin_candidate.setAttributeValue("network", "0");
+			}
+			
+			// Gingle Candidate Transport
 			session = p.addElement(new NSI("session", "http://www.google.com/session"));
 			session.setAttributeValue("type", "candidates");
 			session.setID(callSession.jabberSessionId);
@@ -1344,6 +1543,43 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			p.setID(Long.toString(++this.idNum));
 			p.setAttributeValue("type", "set");
 
+			// Jingle Candidate Transport
+			if (clientJingle) {
+				StreamElement jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+				jin.setAttributeValue("action", "transport-info");
+				jin.setAttributeValue("initiator", callSession.jabberInitiator);
+				jin.setAttributeValue("sid", callSession.jabberSessionId);	
+				
+				StreamElement content = jin.addElement("content");
+				content.setAttributeValue("name", "video");
+				content.setAttributeValue("creator", "initiator");
+				
+				StreamElement jin_transport = content.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+	
+				StreamElement jin_candidate = jin_transport.addElement("candidate");
+				if (type == StreamType.VRTP)
+				{
+					jin_candidate.setAttributeValue("name", "video_rtp");
+					jin_candidate.setAttributeValue("address", SipService.getLocalIP());
+					jin_candidate.setAttributeValue("port", Integer.toString(callSession.vRelay.getJabberPort()));
+				}
+				else
+				{
+					jin_candidate.setAttributeValue("name", "video_rtcp");
+					jin_candidate.setAttributeValue("address", SipService.getLocalIP());
+					jin_candidate.setAttributeValue("port", Integer.toString(callSession.vRelay.getJabberRtcpPort()));				
+				}
+				jin_candidate.setAttributeValue("preference", "1");
+				jin_candidate.setAttributeValue("username", callSession.candidateVUser);
+				jin_candidate.setAttributeValue("password", callSession.candidateVUser);
+				jin_candidate.setAttributeValue("protocol", "udp");
+	
+				jin_candidate.setAttributeValue("generation", "0");
+				jin_candidate.setAttributeValue("type", "local");
+				jin_candidate.setAttributeValue("network", "0");
+			}	
+			
+			// Gingle 
 			session = p.addElement(new NSI("session", "http://www.google.com/session"));
 			session.setAttributeValue("type", "candidates");
 			session.setID(callSession.jabberSessionId);
@@ -1394,6 +1630,24 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setID(Long.toString(++this.idNum));
 		p.setAttributeValue("type", "set");
 
+		// Jingle
+		StreamElement jin = null;
+		StreamElement content = null;
+		StreamElement jin_transport = null;
+		
+		if (clientJingle) {
+			jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+			jin.setAttributeValue("action", "session-accept");
+			jin.setAttributeValue("initiator", callSession.jabberInitiator);
+			jin.setAttributeValue("sid", callSession.jabberSessionId);
+			
+			content = jin.addElement("content");
+			content.setAttributeValue("name", "audio");
+			content.setAttributeValue("creator", "initiator");
+			jin_transport = content.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+		}
+		
+		// Gingle
 		StreamElement session = p.addElement(new NSI("session", "http://www.google.com/session"));
 		
 		session.setAttributeValue("type", "accept");
@@ -1402,12 +1656,27 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		session.setAttributeValue("initiator", callSession.jabberInitiator);
 	
 		StreamElement description = null;
+		StreamElement jin_description = null;
+
 		if (callSession.vRelay != null)
 		{
+			// Gingle Video
 			description = session.addElement(new NSI("description", "http://www.google.com/session/video"));
+			
+			// Jingle Video
+			if (clientJingle) {
+				StreamElement content_vid = jin.addElement("content");
+				content_vid.setAttributeValue("name", "video");
+				content_vid.setAttributeValue("creator", "initiator");
+							
+				jin_description = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_description.setAttributeValue("media", "video");
+				jin_transport = content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));	
+			}
 			
 			for (CallSession.VPayload payload : callSession.answerVPayloads)
 			{
+				// Gingle Video Payloads
 				StreamElement payload_type = description.addElement("payload-type");
 				
 				payload_type.setAttributeValue("id", Integer.toString(payload.id));
@@ -1418,21 +1687,57 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				payload_type.setAttributeValue("framerate", Integer.toString(payload.framerate));
 				
 				payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate));
+				
+				// Jingle Video Payloads
+				if (clientJingle) {
+					StreamElement jin_payload_type = jin_transport.addElement("payload-type");
+					
+					jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
+					jin_payload_type.setAttributeValue("name", payload.name);
+					
+					StreamElement jin_payload_video = jin_payload_type.addElement("parameter");
+					
+					jin_payload_video.setAttributeValue("width", Integer.toString(payload.width));
+					jin_payload_video.setAttributeValue("height", Integer.toString(payload.height));
+					jin_payload_video.setAttributeValue("framerate", Integer.toString(payload.framerate));
+				}
+				
 			}
 		}
 		else
 		{
+			// Gingle
 			description = session.addElement(new NSI("description", "http://www.google.com/session/phone"));
+			// Jingle
+			if (clientJingle) {
+				jin_description = content.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_description.setAttributeValue("media", "audio");
+			}
 		}
 		
 		for (CallSession.Payload payload : callSession.answerPayloads)
 		{
+			// Gingle Audio Payloads
 			StreamElement payload_type = description.addElement("payload-type", "http://www.google.com/session/phone");
 			
 			payload_type.setAttributeValue("id", Integer.toString(payload.id));
 			payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate));
 			payload_type.setAttributeValue("bitrate", Integer.toString(payload.bitRate));
 			payload_type.setAttributeValue("name", payload.name);
+
+			// Jingle Audio Payloads
+			if (clientJingle) {
+				StreamElement jin_payload_type = jin_description.addElement("payload-type");
+							
+				jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
+				jin_payload_type.setAttributeValue("name", payload.name);
+				jin_payload_type.setAttributeValue("clockrate", Integer.toString(payload.clockRate)); 
+					if ( Integer.toString(payload.clockRate) != null ) {
+						StreamElement jin_payload_bitrate = jin_payload_type.addElement("parameter");
+						jin_payload_bitrate.setAttributeValue("name", "bitrate");
+						jin_payload_bitrate.setAttributeValue("value", Integer.toString(payload.bitRate));
+					}
+			}
 		}
 		
 		/*StreamElement transport = */session.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
