@@ -33,6 +33,7 @@ import java.util.Random;
 import java.util.UUID;
 
 import javax.sip.address.SipURI;
+import javax.sip.DialogState;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
@@ -895,11 +896,14 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						{
 							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
 							
-							// logger.debug("[[" + internalCallId + "]] Call found sending CANCEL");
-							// SipService.sendReject(cs);
+							if (cs.sipDialog.getState() != DialogState.EARLY) {
+								logger.debug("[[" + internalCallId + "]] Call found sending BYE");
+								SipService.sendBye(cs);
+							} else {
+								logger.debug("[[" + internalCallId + "]] Call found in Early state, sending CANCEL");
+								SipService.sendReject(cs);
+							}
 							
-							logger.debug("[[" + internalCallId + "]] Call found sending BYE");
-							SipService.sendBye(cs);
 							
 							CallManager.removeSession(cs);
 						}
