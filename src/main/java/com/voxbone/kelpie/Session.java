@@ -1199,7 +1199,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	{
 		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", Utilities.SERVER_NAMESPACE), Packet.class);
 		
-		callSession.jabberLocal = new JID(from + "@" + host + "/kelpie");
+		callSession.jabberLocal = new JID(from + "@" + host + "/"+ fakeId );
 		callSession.jabberRemote = new JID(UriMappings.toJID(to).toString() + "/" + UriMappings.getVoiceResource(UriMappings.toJID(to)));
 		callSession.jabberInitiator = callSession.jabberLocal.toString();
 		
@@ -1242,21 +1242,25 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		StreamElement description = null;
 		StreamElement jin_description = null;
+		StreamElement jin_vdescription = null;
 		
+		// Video + Audio call
 		if (callSession.vRelay != null)
 		{
 			// Gingle
 			description = session.addElement(new NSI("description", "http://www.google.com/session/video"));
 
-			// Jingle
+			// Jingle video content
 			if (clientJingle) {
+				
 				StreamElement content_vid = jin.addElement("content");
 				content_vid.setAttributeValue("name", "video");
 				content_vid.setAttributeValue("creator", "initiator");
 				
-				jin_description = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
-				jin_description.setAttributeValue("media", "video");
-				jin_transport = content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+				jin_vdescription = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_vdescription.setAttributeValue("media", "video");
+				// jin_transport = content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
+				content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));
 			}
 			
 			for (CallSession.VPayload payload : callSession.offerVPayloads)
@@ -1271,7 +1275,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				
 				// Jingle Video
 				if (clientJingle) {
-					StreamElement jin_payload_type = jin_transport.addElement("payload-type");
+					StreamElement jin_payload_type = jin_vdescription.addElement("payload-type");
 					
 					jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
 					jin_payload_type.setAttributeValue("name", payload.name);
@@ -1285,12 +1289,14 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				
 			}
 		}
+		
+		// Audio Call
 		else
 		{
 			// Gingle
 			description = session.addElement(new NSI("description", "http://www.google.com/session/phone"));
 			
-			// Jingle
+			// Jingle audio content
 			if (clientJingle) {
 				jin_description = content.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
 				jin_description.setAttributeValue("media", "audio");
@@ -1657,6 +1663,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	
 		StreamElement description = null;
 		StreamElement jin_description = null;
+		StreamElement jin_vdescription = null;
 
 		if (callSession.vRelay != null)
 		{
@@ -1669,8 +1676,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				content_vid.setAttributeValue("name", "video");
 				content_vid.setAttributeValue("creator", "initiator");
 							
-				jin_description = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
-				jin_description.setAttributeValue("media", "video");
+				jin_vdescription = content_vid.addElement(new NSI("description", "urn:xmpp:jingle:apps:rtp:1"));
+				jin_vdescription.setAttributeValue("media", "video");
 				jin_transport = content_vid.addElement(new NSI("transport", "http://www.google.com/transport/p2p"));	
 			}
 			
@@ -1690,7 +1697,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 				
 				// Jingle Video Payloads
 				if (clientJingle) {
-					StreamElement jin_payload_type = jin_transport.addElement("payload-type");
+					StreamElement jin_payload_type = jin_vdescription.addElement("payload-type");
 					
 					jin_payload_type.setAttributeValue("id", Integer.toString(payload.id));
 					jin_payload_type.setAttributeValue("name", payload.name);
@@ -1717,7 +1724,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		for (CallSession.Payload payload : callSession.answerPayloads)
 		{
-			// Gingle Audio Payloads
+			// Gingle Audio payloads
 			StreamElement payload_type = description.addElement("payload-type", "http://www.google.com/session/phone");
 			
 			payload_type.setAttributeValue("id", Integer.toString(payload.id));
@@ -1725,7 +1732,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 			payload_type.setAttributeValue("bitrate", Integer.toString(payload.bitRate));
 			payload_type.setAttributeValue("name", payload.name);
 
-			// Jingle Audio Payloads
+			// Jingle Audio payloads
 			if (clientJingle) {
 				StreamElement jin_payload_type = jin_description.addElement("payload-type");
 							
