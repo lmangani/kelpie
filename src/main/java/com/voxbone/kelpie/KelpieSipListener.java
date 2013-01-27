@@ -17,6 +17,8 @@
 package com.voxbone.kelpie;
 
 
+import gov.nist.javax.sip.header.Require;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
@@ -49,6 +51,7 @@ import javax.sip.header.ContactHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
 import javax.sip.header.ViaHeader;
 import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.header.ToHeader;
@@ -473,6 +476,33 @@ public class KelpieSipListener implements SipListener
 							return;
 						}
 					}
+				} else {
+					// SIP RE-INVITE (dumbstart implementation, ignores timers, etc)
+					logger.info("[[SIP]] Got a re-invite!");
+					CallSession cs = (CallSession) evt.getDialog().getApplicationData();
+					if (cs != null) 
+					{
+						Response res = null;
+						Session sess = SessionManager.findCreateSession(cs.jabberLocal.getDomain(), cs.jabberRemote);
+						if (sess == null) 
+						{
+							res = SipService.messageFactory.createResponse(Response.OK, req);
+						} else {
+							res = SipService.messageFactory.createResponse(Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST, req);
+						}
+						
+						if (evt.getServerTransaction() == null)
+							{
+								ServerTransaction tx = ((SipProvider) evt.getSource()).getNewServerTransaction(req);
+								tx.sendResponse(res);
+							}
+						else
+							{
+								evt.getServerTransaction().sendResponse(res);
+							}
+						return;
+
+					}
 				}
 			}
 			else if (req.getMethod().equals(Request.BYE))
@@ -581,6 +611,54 @@ public class KelpieSipListener implements SipListener
 				SipService.sipProvider.sendResponse(res);
 				return;
 			}
+			// SIP UPDATE (dumbstart, purposed as Jingle session-info counterpart)
+			else if (req.getMethod().equals(Request.UPDATE))
+			{
+				
+				int	resp = Response.OK;
+				
+				if (optionsmode) {
+					
+					
+					if (evt.getDialog() != null)
+					{
+								
+						logger.info("[[SIP]] Got UPDATE request");
+						resp = Response.OK;
+							
+						// temp: debug message to validate this OPTIONS scenario
+						CallSession cs = (CallSession) evt.getDialog().getApplicationData();
+						if (cs == null) 
+						{ 
+							logger.error("[[SIP]] UPDATE CallSession is null?");	
+						} 
+						
+						Header require = (Header)req.getHeader(Require.NAME);
+						Header sessexp = (Header)req.getHeader("Session-Expires");
+				        logger.debug("[[SIP]] SESSION-TIMER: "+require+":"+sessexp);
+							
+					} else {
+						
+						logger.info("[[SIP]] No Session - Rejecting UPDATE");
+						resp = Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST;
+					}
+				}
+				
+				try
+				{
+					DatagramSocket ds = new DatagramSocket();
+					ds.close();
+				}
+				catch (SocketException e)
+				{
+					logger.error("[[SIP]] No more sockets available", e);
+					resp = Response.SERVER_INTERNAL_ERROR;
+				}
+				Response res = SipService.messageFactory.createResponse(resp, req);
+				SipService.sipProvider.sendResponse(res);
+				return;
+			}
+			
 			else if (req.getMethod().equals(Request.INFO))
 			{
 				CallSession cs = (CallSession) evt.getDialog().getApplicationData();
