@@ -171,7 +171,7 @@ public class SipService
 			
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
 			
-			AllowHeader allowHeader = headerFactory.createAllowHeader("ACK,BYE,CANCEL,INFO,OPTIONS,NOTIFY,UPDATE");
+			AllowHeader allowHeader = headerFactory.createAllowHeader("INVITE, ACK, CANCEL, OPTIONS, BYE, UPDATE, NOTIFY, MESSAGE, SUBSCRIBE, INFO");
 			resp.addHeader(allowHeader);
 			
 			resp.addHeader(ch);
@@ -352,7 +352,7 @@ public class SipService
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
 			request.addHeader(ch);
 			
-			AllowHeader allowHeader = headerFactory.createAllowHeader("ACK,BYE,CANCEL,INFO,OPTIONS,NOTIFY,UPDATE");
+			AllowHeader allowHeader = headerFactory.createAllowHeader("INVITE, ACK, CANCEL, OPTIONS, BYE, UPDATE, NOTIFY, MESSAGE, SUBSCRIBE, INFO");
 			request.addHeader(allowHeader);
 			
 			UserAgentHeader userAgent = (UserAgentHeader) headerFactory.createHeader(UserAgentHeader.NAME, agentName);
