@@ -908,6 +908,21 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 							CallManager.removeSession(cs);
 						}
 					}
+					else if(action.equals("session-info"))
+					{
+						logger.debug("[[" + internalCallId + "]] Got session-info request");
+						Session sess = SessionManager.findCreateSession(packet.getTo().getDomain(), packet.getFrom());
+						sess.ackIQ(packet);
+						String sessionId = session.getAttributeValue("sid");
+						CallSession cs = CallManager.getSession(sessionId);
+						for(Object objContent : session.listElements("content"))
+						{
+							StreamElement content = (StreamElement)objContent;
+							StreamElement origTransport = content.getFirstElement("transport");
+							handleTransportList(sess, origTransport, cs);
+						}	
+						
+					}
 					else 
 					{ 
 						logger.debug("[[" + internalCallId + "]] Unhandled action: "+ action ); 
@@ -1106,7 +1121,6 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private void unIQ(Packet packet) throws StreamException
 	{
 		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
-
 		p.setFrom(packet.getTo());
 		p.setTo(packet.getFrom());
 		p.setID(packet.getID());
@@ -1118,6 +1132,42 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		sendPacket(p);
 	}
 	
+	// XEP-0167 Jingle Informational Messages (generic prototype helper)
+	private void sessinfoIQ(Packet packet, String action) throws StreamException
+	{
+		// actions: active, hold, unhold, ringing
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+		p.setFrom(packet.getTo());
+		p.setTo(packet.getFrom());
+		p.setID(packet.getID());
+		p.setAttributeValue("type", "set");
+		p.addElement("jingle").setAttributeValue("xmlns", "urn:xmpp:jingle:1");
+		p.getFirstElement("jingle").setAttributeValue("action", "session-info");
+		p.getFirstElement("jingle").setAttributeValue("initiator", packet.getFrom().toString() );
+		p.getFirstElement("jingle").addElement(action).setAttributeValue("xmlns", "urn:xmpp:jingle:apps:rtp:info:1");
+		sendPacket(p);
+	}
+		
+	// XEP-0167 Jingle Informational Messages (mute helper)
+	private void muteIQ(Packet packet, String action, String creator, String resource) throws StreamException
+	{
+		// actions: mute, unmute resource: audio, video, both (both)
+		Packet p = conn.getDataFactory().createPacketNode(new NSI("iq", "jabber:server"), Packet.class);
+		p.setFrom(packet.getTo());
+		p.setTo(packet.getFrom());
+		p.setID(packet.getID());
+		p.setAttributeValue("type", "set");
+		p.addElement("jingle").setAttributeValue("xmlns", "urn:xmpp:jingle:1");
+		p.getFirstElement("jingle").setAttributeValue("action", "session-info");
+		p.getFirstElement("jingle").setAttributeValue("initiator", packet.getFrom().toString() );
+		p.getFirstElement("jingle").addElement(action).setAttributeValue("xmlns", "urn:xmpp:jingle:apps:rtp:info:1");
+		p.getFirstElement(action).setAttributeValue("creator", creator);
+			if (resource != null && resource != "both" ) {
+				p.getFirstElement(action).setAttributeValue("name", resource);
+			}
+		sendPacket(p);
+	}
+		
 	// error helper
 	private void errorIQ(Packet packet, String...type) throws StreamException
 	{
