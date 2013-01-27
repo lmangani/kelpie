@@ -990,8 +990,13 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						if (cs != null)
 						{
 							logger.debug("[[" + internalCallId + "]] got call session : [[" + cs.internalCallId + "]]");
-							logger.debug("[[" + internalCallId + "]] found call session, forwarding BYE");
-							SipService.sendBye(cs);
+							if (cs.sipDialog.getState() != DialogState.EARLY) {
+								logger.debug("[[" + internalCallId + "]] Call found sending BYE");
+								SipService.sendBye(cs);
+							} else {
+								logger.debug("[[" + internalCallId + "]] Call found in Early state, sending CANCEL");
+								SipService.sendReject(cs);
+							}
 							CallManager.removeSession(cs);
 						}
 					}
