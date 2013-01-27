@@ -39,6 +39,7 @@ import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.address.URI;
+import javax.sip.header.AllowHeader;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.ContactHeader;
@@ -169,6 +170,10 @@ public class SipService
 			Address localAddress = addressFactory.createAddress("sip:" + dest + "@" + lp.getIPAddress() + ":" + lp.getPort());
 			
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
+			
+			AllowHeader allowHeader = headerFactory.createAllowHeader("ACK,BYE,CANCEL,INFO,OPTIONS,NOTIFY,UPDATE");
+			resp.addHeader(allowHeader);
+			
 			resp.addHeader(ch);
 			
 			UserAgentHeader userAgent = (UserAgentHeader) headerFactory.createHeader(UserAgentHeader.NAME, agentName);
@@ -346,6 +351,9 @@ public class SipService
 			
 			ContactHeader ch = headerFactory.createContactHeader(localAddress);
 			request.addHeader(ch);
+			
+			AllowHeader allowHeader = headerFactory.createAllowHeader("ACK,BYE,CANCEL,INFO,OPTIONS,NOTIFY,UPDATE");
+			request.addHeader(allowHeader);
 			
 			UserAgentHeader userAgent = (UserAgentHeader) headerFactory.createHeader(UserAgentHeader.NAME, agentName);
 			request.setHeader(userAgent);
