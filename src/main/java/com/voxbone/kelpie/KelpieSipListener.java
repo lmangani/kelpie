@@ -486,7 +486,7 @@ public class KelpieSipListener implements SipListener
 						Session sess = SessionManager.findCreateSession(cs.jabberLocal.getDomain(), cs.jabberRemote);
 						if (sess == null) 
 						{
-							res = SipService.messageFactory.createResponse(Response.OK, req);
+							res = SipService.messageFactory.createResponse(488, req);
 						} else {
 							res = SipService.messageFactory.createResponse(Response.CALL_OR_TRANSACTION_DOES_NOT_EXIST, req);
 						}
