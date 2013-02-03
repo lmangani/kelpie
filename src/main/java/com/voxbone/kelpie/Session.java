@@ -80,6 +80,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static String clientName = null;
 	private static String clientVersion = null;
 	private static String clientPriority;
+	private static String statusNoteOnline;
 
 	private static String fakeId = null;
 	private static boolean featVID = true;
@@ -162,6 +163,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		clientName = "http://" + properties.getProperty("com.voxbone.kelpie.hostname", "kelpie.voxbone.com") + "/caps";
 		clientVersion = properties.getProperty("com.voxbone.kelpie.version", "git");
 		clientPriority = properties.getProperty("com.voxbone.kelpie.feature.priority", "24");
+		statusNoteOnline = properties.getProperty("com.voxbone.kelpie.status_note.online", "Kelpie Phone");
 		fakeId = properties.getProperty("com.voxbone.kelpie.service_name", "kelpie");
 		featVID = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.video", "true"));
 		featPMUC = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.pmuc", "true"));
@@ -1254,11 +1256,17 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setTo(to);
 		p.setAttributeValue("type", type);
 		
+		// Add status to subscribed stanza, FS-Style
+		if (type == "subscribed") {
+			StreamElement status = p.addElement(new NSI("status", "http://jabber.org/protocol/nick"));
+			status.addText(statusNoteOnline);
+		}
+		
 		if (featNICK && type == "subscribe") {
 			String nick = from.toString().split("@")[0];
 				if (nick.contains("+")) { nick = nick.split("+")[0]; }
-			p.addElement(new NSI("nick", "http://jabber.org/protocol/nick"));
-			p.getFirstElement("nick").addText(nick);
+				StreamElement nicktag = p.addElement(new NSI("nick", "http://jabber.org/protocol/nick"));
+				nicktag.addText(nick);
 		}
 		
 		try
