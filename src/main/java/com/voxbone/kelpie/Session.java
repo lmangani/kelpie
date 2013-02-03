@@ -1879,9 +1879,12 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		// Jingle
 		if (clientJingle) {
 			StreamElement jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+			
 			jin.setAttributeValue("action", "session-terminate");
 			jin.setAttributeValue("sid", callSession.jabberSessionId);
 			jin.addElement(new NSI("call-ended", "http://www.google.com/session/phone"));
+			StreamElement content = jin.addElement("reason");
+			content.addElement("success");
 		}
 		
 		// Gingle
