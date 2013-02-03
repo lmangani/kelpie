@@ -1258,7 +1258,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		
 		// Add status to subscribed stanza, FS-Style
 		if (type == "subscribed") {
-			StreamElement status = p.addElement(new NSI("status", "http://jabber.org/protocol/nick"));
+			StreamElement status = p.addElement("status");
 			status.addText(statusNoteOnline);
 		}
 		
