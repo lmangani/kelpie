@@ -88,7 +88,8 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 	private static boolean featSMS = false;
 	private static boolean featPING = false;
 	private static boolean featNICK = false;
-	
+	private static boolean subscribeEmu = false;
+
 	private static boolean clientJingle = false;
 
 	private static boolean useDtmfInfo = false;
@@ -170,7 +171,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		useDtmfInfo = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.dtmf-info", "false"));
 		dtmfDuration = Integer.parseInt(properties.getProperty("com.voxbone.kelpie.feature.dtmf-duration", "160"));
 		featNICK = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.chat-nickname", "false"));
-		
+		subscribeEmu = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.feature.subscribe.force-emu", "false"));
 		clientJingle = Boolean.parseBoolean(properties.getProperty("com.voxbone.kelpie.jingle", "false"));
 
 
@@ -696,6 +697,7 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 								sub.sendNotify(true, null);
 							}
 						}
+						
 					}
 					else if (type.equals("subscribed"))
 					{
@@ -714,7 +716,23 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 						String to = evt.getData().getTo().getNode();
 						logger.debug("[[" + internalCallId + "]] Probe received from " + from + " to " + to);
 						
-						if (!to.equals(fakeId))
+						if (to.equals(fakeId) || subscribeEmu ) 
+						{	
+							// subscribe emulation is forced or fake, send a dummy presence stanza + subscribed status
+							Session sess = SessionManager.findCreateSession(host, evt.getData().getFrom());
+
+							if (subscribeEmu) {	
+								logger.debug("[[" + internalCallId + "]] Probe from " + from + ", sending emulated presence from "+ to);
+								sess.sendSubscribeRequest(new JID(to + "@" + host), evt.getData().getFrom(), "subscribed");
+								sess.sendPresence(Presence.buildOnlinePresence(to, from, host));
+							} else {
+								logger.debug("[[" + internalCallId + "]] Probe to " + fakeId + ", sending dummy presence to " + from);
+								sess.sendSubscribeRequest(new JID(fakeId + "@" + host), evt.getData().getFrom(), "subscribed");
+								sess.sendPresence(Presence.buildOnlinePresence(fakeId, from, host));
+							}
+
+						} 
+						else if (!to.equals(fakeId))
 						{
 							SipSubscription sub = SipSubscriptionManager.getSubscription(from, to);
 							if (sub != null)
@@ -729,7 +747,9 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 								SipSubscriptionManager.addSubscriber(from, sub);
 								sub.sendSubscribe(false);
 							}
-						}
+							
+						} 
+						
 					}
 				}
 			}
@@ -1856,11 +1876,19 @@ class Session extends Thread implements StreamStatusListener, PacketListener
 		p.setID(Long.toString(++this.idNum));
 		p.setAttributeValue("type", "set");
 		
+		// Jingle
+		if (clientJingle) {
+			StreamElement jin = p.addElement(new NSI("jingle", "urn:xmpp:jingle:1"));
+			jin.setAttributeValue("action", "session-terminate");
+			jin.setAttributeValue("sid", callSession.jabberSessionId);
+			jin.addElement(new NSI("call-ended", "http://www.google.com/session/phone"));
+		}
+		
+		// Gingle
 		StreamElement session = p.addElement(new NSI("session", "http://www.google.com/session"));
 		
 		session.setAttributeValue("type", "terminate");
 		session.setID(callSession.jabberSessionId);
-		
 		session.setAttributeValue("initiator", callSession.jabberInitiator);
 		
 		try
