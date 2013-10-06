@@ -154,7 +154,8 @@ public class GatewayServer
 		KelpieSipListener.configure(properties);
 
 		host = properties.getProperty("com.voxbone.kelpie.hostname");
-		port = "5269";
+		port = properties.getProperty("com.voxbone.kelpie.xmpp.port", "5269");
+		// port = "5269";
 		
 		@SuppressWarnings("unused")
 		SipService sipService = new SipService(properties);
